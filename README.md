@@ -1,5 +1,11 @@
 # Monero X
 
+**Monero X** is Vanilla Monero Hardfork with clear Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished.
+
+Total Supply is limited to 180M and **size limits are doubled**. This is **highly experimental currency** supposed to use to test and debug independent Smart Contracts implementation based on **Python3** interpreter as Contracts Language and `pyledger` with `monero-python` libraries as contracts runtime.
+
+![mr. X](./mrx.png)
+
 ## Requirements
 
 ```bash
@@ -16,6 +22,6 @@ Project builds with CLang already available in OSX
 
 ## Copyrights
 
-&copy; 2018 The Monero X Project.
-&copy; 2014-2018 The Monero Project.   
-&copy; 2012-2013 The Cryptonote developers.
+- 2018 &copy; The Monero X Project.
+- 2014-2018 &copy; The Monero Project.   
+- 2012-2013 &copy; The Cryptonote developers.
