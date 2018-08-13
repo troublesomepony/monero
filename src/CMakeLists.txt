@@ -72,6 +72,7 @@ function (monero_add_executable name)
     ${ARGN})
   target_link_libraries("${name}"
     PRIVATE
+      unbound
       ${EXTRA_LIBRARIES})
   set_property(TARGET "${name}"
     PROPERTY

@@ -102,6 +102,7 @@ target_link_libraries(daemon
     ${CMAKE_THREAD_LIBS_INIT}
     ${ZMQ_LIB}
     ${GNU_READLINE_LIBRARY}
+    miniupnpc
     ${EXTRA_LIBRARIES})
 set_property(TARGET daemon
   PROPERTY
