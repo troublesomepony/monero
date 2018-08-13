@@ -8,16 +8,26 @@ Total Supply is limited to 180M and **size limits are doubled**. This is **highl
 
 ## Requirements
 
+In Monero X outdated scheme of dependencies handling (putting code to `external` folder) is changed to using system
+libraries search. Almost everything git submodules are removed. You will need following libraries to build Monero X:
+
 ```bash
 brew install rapidjson unbound miniupnp readline
 ```
 
 ## Building process
 
-Project builds with CLang already available in OSX
+Project builds with CLang already available in OSX:
 
 ```bash
 ./build.sh
+```
+
+Sample output:
+
+```bash
+-- The C compiler identification is AppleClang 9.1.0.9020039
+-- The CXX compiler identification is AppleClang 9.1.0.9020039
 ```
 
 ## Copyrights
