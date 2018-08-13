@@ -14,8 +14,8 @@ brew install monero-x
 
 ## Building Requirements
 
-In Monero X outdated scheme of dependencies handling (putting code to `external` folder) is changed to using system
-libraries search. Almost everything git submodules are removed. You will need following libraries to build Monero X:
+In Monero-X outdated scheme of dependencies handling (putting code to `external` folder) is changed to using system
+libraries search. Almost everything git submodules are removed. You will need following libraries to build Monero-X:
 
 ```bash
 brew install rapidjson unbound miniupnp readline
@@ -38,6 +38,6 @@ Sample output:
 
 ## Copyrights
 
-- 2018 &copy; The Monero X Project.
+- 2018 &copy; The Monero-X Project.
 - 2014-2018 &copy; The Monero Project.   
 - 2012-2013 &copy; The Cryptonote developers.
