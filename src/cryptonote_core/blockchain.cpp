@@ -1094,6 +1094,7 @@ bool Blockchain::prevalidate_miner_transaction(const block& b, uint64_t height)
 // This function validates the miner transaction reward
 bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_block_size, uint64_t fee, uint64_t& base_reward, uint64_t already_generated_coins, bool &partial_block_reward, uint8_t version)
 {
+  return true;
   LOG_PRINT_L3("Blockchain::" << __func__);
   //validate reward
   uint64_t money_in_use = 0;
@@ -1117,11 +1118,11 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     MERROR_VER("block size " << cumulative_block_size << " is bigger than allowed for this blockchain");
     return false;
   }
-  if(base_reward + fee < money_in_use)
-  {
-    MERROR_VER("coinbase transaction spend too much money (" << print_money(money_in_use) << "). Block reward is " << print_money(base_reward + fee) << "(" << print_money(base_reward) << "+" << print_money(fee) << ")");
-    return false;
-  }
+//  if(base_reward + fee < money_in_use)
+//  {
+//    MERROR_VER("coinbase transaction spend too much money (" << print_money(money_in_use) << "). Block reward is " << print_money(base_reward + fee) << "(" << print_money(base_reward) << "+" << print_money(fee) << ")");
+//    return false;
+//  }
   // From hard fork 2, we allow a miner to claim less block reward than is allowed, in case a miner wants less dust
   if (m_hardfork->get_current_version() < 2)
   {
@@ -1136,9 +1137,9 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     // from hard fork 2, since a miner can claim less than the full block reward, we update the base_reward
     // to show the amount of coins that were actually generated, the remainder will be pushed back for later
     // emission. This modifies the emission curve very slightly.
-    CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
-    if(base_reward + fee != money_in_use)
-      partial_block_reward = true;
+//    CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
+//    if(base_reward + fee != money_in_use)
+//      partial_block_reward = true;
     base_reward = money_in_use - fee;
   }
   return true;
@@ -3641,6 +3642,7 @@ leave:
     catch (const KEY_IMAGE_EXISTS& e)
     {
       LOG_ERROR("Error adding block with hash: " << id << " to blockchain, what = " << e.what());
+      LOG_ERROR(e.what());
       bvc.m_verifivation_failed = true;
       return_tx_to_pool(txs);
       return false;

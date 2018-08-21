@@ -164,6 +164,8 @@ namespace cryptonote
 
     //lock
     tx.unlock_time = height + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW;
+    MGINFO("unlock time:");
+    MGINFO(tx.unlock_time);
     tx.vin.push_back(in);
 
     tx.invalidate_hashes();

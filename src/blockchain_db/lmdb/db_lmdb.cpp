@@ -728,6 +728,7 @@ void BlockchainLMDB::add_block(const block& blk, const size_t& block_size, const
   bi.bi_diff = cumulative_difficulty;
   bi.bi_hash = blk_hash;
   bi.bi_cum_rct = num_rct_outs;
+  if (m_height > 0) {
   if (blk.major_version >= 4)
   {
     uint64_t last_height = m_height-1;
@@ -736,7 +737,7 @@ void BlockchainLMDB::add_block(const block& blk, const size_t& block_size, const
         throw1(BLOCK_DNE(lmdb_error("Failed to get block info: ", result).c_str()));
     const mdb_block_info *bi_prev = (const mdb_block_info*)h.mv_data;
     bi.bi_cum_rct += bi_prev->bi_cum_rct;
-  }
+  } }
 
   MDB_val_set(val, bi);
   result = mdb_cursor_put(m_cur_block_info, (MDB_val *)&zerokval, &val, MDB_APPENDDUP);
