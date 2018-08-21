@@ -176,6 +176,7 @@ target_link_libraries(blockchain_usage
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+	${UNBOUND_LIBRARIES}
     ${EXTRA_LIBRARIES})
 
 set_property(TARGET blockchain_usage
