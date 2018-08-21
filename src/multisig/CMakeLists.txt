@@ -49,4 +49,5 @@ target_link_libraries(multisig
     common
     cncrypto
   PRIVATE
-    ${EXTRA_LIBRARIES})
+    ${EXTRA_LIBRARIES}
+    ${UNBOUND_LIBRARIES})
