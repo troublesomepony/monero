@@ -106,6 +106,7 @@ target_link_libraries(blockchain_import
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+	${UNBOUND_LIBRARIES}
     ${EXTRA_LIBRARIES})
 
 if(ARCH_WIDTH)
@@ -132,6 +133,7 @@ target_link_libraries(blockchain_export
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+	${UNBOUND_LIBRARIES}
     ${EXTRA_LIBRARIES})
 
 set_property(TARGET blockchain_export
@@ -154,6 +156,7 @@ target_link_libraries(blockchain_blackball
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+	${UNBOUND_LIBRARIES}
     ${EXTRA_LIBRARIES})
 
 set_property(TARGET blockchain_blackball
