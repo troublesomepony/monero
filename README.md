@@ -1,5 +1,7 @@
 # MONERO-X v0.0.1-alpha.0 `WIP (work-in-progress)`
 
+![Monero-X DEV Badge](https://badge.fury.io/gh/troublesomepony%2Fmonero-x.svg)
+
 ## `Abandon all hope, ye who enter here`
 
 ### `Pull Requests 👮 Are Welcome`
