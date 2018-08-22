@@ -8,7 +8,7 @@
 
 Total Supply is limited to 180M and **size limits are doubled**.
 
-This is **highly experimental currency** supposed to use to test and debug independent Smart Contracts implementation based on **Python3** interpreter as Contracts Language and @troublesomepony/pyledger with @troublesomepony/monero-python libraries as contracts runtime.
+This is **highly experimental currency** supposed to use to test and debug independent Smart Contracts implementation based on **Python3** interpreter as Contracts Language and `pyledger` with `monero-python` libraries as contracts runtime.
 
 ## Building Requirements
 
