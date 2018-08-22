@@ -1,14 +1,26 @@
-# Monero-X v0.0.1-alpha.0 `work in progress`
+# MONERO-X v0.0.1-alpha.0 `WIP (work-in-progress)`
 
-`P u l l R e q u e s t s a r e W e l c o m e` 👮‍
+## `Abandon all hope, ye who enter here`
+
+### `Pull Requests 👮 Are Welcome`
  
-**Monero-X** is Vanilla Monero Hardfork with clear Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished (all job done).
+**MONERO-X** is vanilla Monero hard fork with **clear Genesis** aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished (all job done).
 
 ![mr. X](./mrx.png)
 
 Total Supply is limited to 180M and **size limits are doubled**.
 
 This is **highly experimental currency** supposed to use to test and debug independent Smart Contracts implementation based on **Python3** interpreter as Contracts Language and `pyledger` with `monero-python` libraries as contracts runtime.
+
+## Denial of Responsibility (LICENSE.md)
+
+**The currency Monero-X** itself as well as it's source code are *HIGHLY EXPERIMENTAL* and exists only to satisfy the author's fantasies.
+
+We do not provide any *SUPPORT* doing *HOT FIXES* closing *GITHUB ISSUES* or even *COMMENT ON ANY REQUEST OF THE END USERS* sorry.
+
+Have to much to do with the code.
+
+That's it.
 
 ## Building Requirements
 
