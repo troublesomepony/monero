@@ -1881,7 +1881,7 @@ void wallet2::pull_blocks(uint64_t start_height, uint64_t &blocks_start_height, 
   cryptonote::COMMAND_RPC_GET_BLOCKS_FAST::response res = AUTO_VAL_INIT(res);
   req.block_ids = short_chain_history;
 
-  LOG(INFO) << "\n\nreq.block_ids: " << short_chain_history;
+  LOG(INFO) << "\n\nreq.block_ids: " << short_chain_history.back();
 
   req.prune = true;
   req.start_height = start_height;
@@ -11458,8 +11458,13 @@ uint64_t wallet2::get_segregation_fork_height() const
 //----------------------------------------------------------------------------------------------------
 void wallet2::generate_genesis(cryptonote::block& b) const {
   cryptonote::generate_genesis_block(b, get_config(m_nettype).GENESIS_TX, get_config(m_nettype).GENESIS_NONCE);
+  std::cout << "GENESIS_TX" << std::endl;
+  std::cout << get_config(m_nettype).GENESIS_TX << std::endl;
+  std::cout << get_config(m_nettype).GENESIS_NONCE << std::endl;
   std::cout << "GENESIS:" << std::endl;
-  std::cout << b << std::endl;
+  std::cout << b.hash << std::endl;
+  std::cout << "HEX" << std::endl;
+  std::cout << epee::string_tools::pod_to_hex(b.hash) << std::endl;
   std::cout << "//" << std::endl;
 }
 }
