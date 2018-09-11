@@ -1835,6 +1835,8 @@ void wallet2::pull_blocks(uint64_t start_height, uint64_t &blocks_start_height, 
   cryptonote::COMMAND_RPC_GET_BLOCKS_FAST::response res = AUTO_VAL_INIT(res);
   req.block_ids = short_chain_history;
 
+  LOG(INFO) << "\n\nreq.block_ids: " << short_chain_history;
+
   req.prune = true;
   req.start_height = start_height;
   req.no_miner_tx = m_refresh_type == RefreshNoCoinbase;
