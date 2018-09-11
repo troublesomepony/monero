@@ -545,8 +545,8 @@ bool BlockchainLMDB::need_resize(uint64_t threshold_size) const
   LOG_PRINT_L1("Space used:      " << size_used);
   LOG_PRINT_L1("Space remaining: " << mei.me_mapsize - size_used);
   LOG_PRINT_L1("Size threshold:  " << threshold_size);
-  float resize_percent_old = RESIZE_PERCENT;
-  LOG_PRINT_L1(boost::format("Percent used: %.04f  Percent threshold: %.04f") % ((double)size_used/mei.me_mapsize) % resize_percent_old);
+  float resize_percent = RESIZE_PERCENT;
+  LOG_PRINT_L1(boost::format("Percent used: %.04f  Percent threshold: %.04f") % ((double)size_used/mei.me_mapsize) % resize_percent);
 
   if (threshold_size > 0)
   {
@@ -558,10 +558,6 @@ bool BlockchainLMDB::need_resize(uint64_t threshold_size) const
     else
       return false;
   }
-
-  std::mt19937 engine(std::random_device{}());
-  std::uniform_real_distribution<double> fdis(0.6, 0.9);
-  double resize_percent = fdis(engine);
 
   if ((double)size_used / mei.me_mapsize  > resize_percent)
   {
@@ -1201,8 +1197,12 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
     throw DB_ERROR("Database could not be opened");
   }
 
-  if (tools::is_hdd(filename.c_str()))
-    MCLOG_RED(el::Level::Warning, "global", "The blockchain is on a rotating drive: this will be very slow, use a SSD if possible");
+  boost::optional<bool> is_hdd_result = tools::is_hdd(filename.c_str());
+  if (is_hdd_result)
+  {
+    if (is_hdd_result.value())
+        MCLOG_RED(el::Level::Warning, "global", "The blockchain is on a rotating drive: this will be very slow, use a SSD if possible");
+  }
 
   m_folder = filename;
 
@@ -1972,14 +1972,25 @@ std::vector<uint64_t> BlockchainLMDB::get_block_cumulative_rct_outputs(const std
 
   MDB_val v;
 
+  uint64_t prev_height = heights[0];
   for (uint64_t height: heights)
   {
-    MDB_val_set(v, height);
-    result = mdb_cursor_get(m_cur_block_info, (MDB_val *)&zerokval, &v, MDB_GET_BOTH);
+    if (height == prev_height + 1)
+    {
+      MDB_val k2;
+      result = mdb_cursor_get(m_cur_block_info, &k2, &v, MDB_NEXT);
+    }
+    else
+    {
+      v.mv_size = sizeof(uint64_t);
+      v.mv_data = (void*)&height;
+      result = mdb_cursor_get(m_cur_block_info, (MDB_val *)&zerokval, &v, MDB_GET_BOTH);
+    }
     if (result)
       throw0(DB_ERROR(lmdb_error("Error attempting to retrieve rct distribution from the db: ", result).c_str()));
     const mdb_block_info *bi = (const mdb_block_info *)v.mv_data;
     res.push_back(bi->bi_cum_rct);
+    prev_height = height;
   }
 
   TXN_POSTFIX_RDONLY();
@@ -2453,55 +2464,6 @@ uint64_t BlockchainLMDB::get_num_outputs(const uint64_t& amount) const
   TXN_POSTFIX_RDONLY();
 
   return num_elems;
-}
-
-// This is a lot harder now that we've removed the output_keys index
-output_data_t BlockchainLMDB::get_output_key(const uint64_t &global_index) const
-{
-  LOG_PRINT_L3("BlockchainLMDB::" << __func__ << " (unused version - does nothing)");
-  check_open();
-  TXN_PREFIX_RDONLY();
-  RCURSOR(output_txs);
-  RCURSOR(tx_indices);
-
-  output_data_t od;
-  MDB_val_set(v, global_index);
-  auto get_result = mdb_cursor_get(m_cur_output_txs, (MDB_val *)&zerokval, &v, MDB_GET_BOTH);
-  if (get_result == MDB_NOTFOUND)
-    throw1(OUTPUT_DNE("output with given index not in db"));
-  else if (get_result)
-    throw0(DB_ERROR("DB error attempting to fetch output tx hash"));
-
-  outtx *ot = (outtx *)v.mv_data;
-
-  MDB_val_set(val_h, ot->tx_hash);
-  get_result = mdb_cursor_get(m_cur_tx_indices, (MDB_val *)&zerokval, &val_h, MDB_GET_BOTH);
-  if (get_result)
-    throw0(DB_ERROR(lmdb_error(std::string("DB error attempting to fetch transaction index from hash ") + epee::string_tools::pod_to_hex(ot->tx_hash) + ": ", get_result).c_str()));
-
-  txindex *tip = (txindex *)val_h.mv_data;
-  MDB_val_set(val_tx_id, tip->data.tx_id);
-  MDB_val result;
-  get_result = mdb_cursor_get(m_cur_txs_pruned, &val_tx_id, &result, MDB_SET);
-  if (get_result == MDB_NOTFOUND)
-    throw1(TX_DNE(std::string("tx with hash ").append(epee::string_tools::pod_to_hex(ot->tx_hash)).append(" not found in db").c_str()));
-  else if (get_result)
-    throw0(DB_ERROR(lmdb_error("DB error attempting to fetch tx from hash", get_result).c_str()));
-
-  blobdata bd;
-  bd.assign(reinterpret_cast<char*>(result.mv_data), result.mv_size);
-
-  transaction tx;
-  if (!parse_and_validate_tx_base_from_blob(bd, tx))
-    throw0(DB_ERROR("Failed to parse tx from blob retrieved from the db"));
-
-  const tx_out tx_output = tx.vout[ot->local_index];
-  od.unlock_time = tip->data.unlock_time;
-  od.height = tip->data.block_id;
-  od.pubkey = boost::get<txout_to_key>(tx_output.target).key;
-
-  TXN_POSTFIX_RDONLY();
-  return od;
 }
 
 output_data_t BlockchainLMDB::get_output_key(const uint64_t& amount, const uint64_t& index)
@@ -2986,10 +2948,10 @@ void BlockchainLMDB::set_batch_transactions(bool batch_transactions)
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   if ((batch_transactions) && (m_batch_transactions))
   {
-    LOG_PRINT_L0("WARNING: batch transaction mode already enabled, but asked to enable batch mode");
+    MINFO("batch transaction mode already enabled, but asked to enable batch mode");
   }
   m_batch_transactions = batch_transactions;
-  LOG_PRINT_L3("batch transactions " << (m_batch_transactions ? "enabled" : "disabled"));
+  MINFO("batch transactions " << (m_batch_transactions ? "enabled" : "disabled"));
 }
 
 // return true if we started the txn, false if already started

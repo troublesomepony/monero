@@ -52,7 +52,7 @@ struct Wallet2CallbackImpl;
 class WalletImpl : public Wallet
 {
 public:
-    WalletImpl(NetworkType nettype = MAINNET);
+    WalletImpl(NetworkType nettype = MAINNET, uint64_t kdf_rounds = 1);
     ~WalletImpl();
     bool create(const std::string &path, const std::string &password,
                 const std::string &language);
@@ -219,7 +219,6 @@ private:
     mutable std::string m_errorString;
     std::string m_password;
     TransactionHistoryImpl * m_history;
-    bool        m_trustedDaemon;
     Wallet2CallbackImpl * m_wallet2Callback;
     AddressBookImpl *  m_addressBook;
     SubaddressImpl *  m_subaddress;
