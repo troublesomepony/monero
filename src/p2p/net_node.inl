@@ -408,8 +408,8 @@ namespace nodetool
     else
     {
       full_addrs.insert("185.25.51.179:19090");
-      full_addrs.insert("185.25.51.183:19091");
-      full_addrs.insert("185.25.51.188:19092");
+      full_addrs.insert("185.25.51.183:29090");
+      full_addrs.insert("185.25.51.188:39090");
     }
     return full_addrs;
   }
