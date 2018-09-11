@@ -366,10 +366,9 @@ void Wallet::error(const std::string &category, const std::string &str) {
 }
 
 ///////////////////////// WalletImpl implementation ////////////////////////
-WalletImpl::WalletImpl(NetworkType nettype)
+WalletImpl::WalletImpl(NetworkType nettype, uint64_t kdf_rounds)
     :m_wallet(nullptr)
     , m_status(Wallet::Status_Ok)
-    , m_trustedDaemon(false)
     , m_wallet2Callback(nullptr)
     , m_recoveringFromSeed(false)
     , m_recoveringFromDevice(false)
@@ -377,7 +376,7 @@ WalletImpl::WalletImpl(NetworkType nettype)
     , m_rebuildWalletCache(false)
     , m_is_connected(false)
 {
-    m_wallet = new tools::wallet2(static_cast<cryptonote::network_type>(nettype));
+    m_wallet = new tools::wallet2(static_cast<cryptonote::network_type>(nettype), kdf_rounds);
     m_history = new TransactionHistoryImpl(this);
     m_wallet2Callback = new Wallet2CallbackImpl(this);
     m_wallet->callback(m_wallet2Callback);
@@ -733,10 +732,10 @@ bool WalletImpl::close(bool store)
 
 std::string WalletImpl::seed() const
 {
-    std::string seed;
+    epee::wipeable_string seed;
     if (m_wallet)
         m_wallet->get_seed(seed);
-    return seed;
+    return std::string(seed.data(), seed.size()); // TODO
 }
 
 std::string WalletImpl::getSeedLanguage() const
@@ -1358,7 +1357,7 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
                 dsts.push_back(de);
                 transaction->m_pending_tx = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */,
                                                                           adjusted_priority,
-                                                                          extra, subaddr_account, subaddr_indices, m_trustedDaemon);
+                                                                          extra, subaddr_account, subaddr_indices);
             } else {
                 // for the GUI, sweep_all (i.e. amount set as "(all)") will always sweep all the funds in all the addresses
                 if (subaddr_indices.empty())
@@ -1368,7 +1367,7 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
                 }
                 transaction->m_pending_tx = m_wallet->create_transactions_all(0, info.address, info.is_subaddress, fake_outs_count, 0 /* unlock_time */,
                                                                           adjusted_priority,
-                                                                          extra, subaddr_account, subaddr_indices, m_trustedDaemon);
+                                                                          extra, subaddr_account, subaddr_indices);
             }
 
             if (multisig().isMultisig) {
@@ -1454,7 +1453,7 @@ PendingTransaction *WalletImpl::createSweepUnmixableTransaction()
 
     do {
         try {
-            transaction->m_pending_tx = m_wallet->create_unmixable_sweep_transactions(m_trustedDaemon);
+            transaction->m_pending_tx = m_wallet->create_unmixable_sweep_transactions();
 
         } catch (const tools::error::daemon_busy&) {
             // TODO: make it translatable with "tr"?
@@ -1891,12 +1890,12 @@ Wallet::ConnectionStatus WalletImpl::connected() const
 
 void WalletImpl::setTrustedDaemon(bool arg)
 {
-    m_trustedDaemon = arg;
+    m_wallet->set_trusted_daemon(arg);
 }
 
 bool WalletImpl::trustedDaemon() const
 {
-    return m_trustedDaemon;
+    return m_wallet->is_trusted_daemon();
 }
 
 bool WalletImpl::watchOnly() const
@@ -2032,7 +2031,8 @@ bool WalletImpl::isNewWallet() const
 
 bool WalletImpl::doInit(const string &daemon_address, uint64_t upper_transaction_size_limit, bool ssl)
 {
-    if (!m_wallet->init(daemon_address, m_daemon_login, upper_transaction_size_limit, ssl))
+    // claim RPC so there's no in-memory encryption for now
+    if (!m_wallet->init(true, daemon_address, m_daemon_login, upper_transaction_size_limit, ssl))
        return false;
 
     // in case new wallet, this will force fast-refresh (pulling hashes instead of blocks)

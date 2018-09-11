@@ -86,7 +86,7 @@ bool do_send_money(tools::wallet2& w1, tools::wallet2& w2, size_t mix_in_factor,
   {
     tools::wallet2::pending_tx ptx;
     std::vector<size_t> indices = w1.select_available_outputs([](const tools::wallet2::transfer_details&) { return true; });
-    w1.transfer(dsts, mix_in_factor, indices, 0, TEST_FEE, std::vector<uint8_t>(), tools::detail::null_split_strategy, tools::tx_dust_policy(TEST_DUST_THRESHOLD), tx, ptx, true);
+    w1.transfer(dsts, mix_in_factor, indices, 0, TEST_FEE, std::vector<uint8_t>(), tools::detail::null_split_strategy, tools::tx_dust_policy(TEST_DUST_THRESHOLD), tx, ptx);
     w1.commit_tx(ptx);
     return true;
   }
@@ -138,7 +138,7 @@ bool transactions_flow_test(std::string& working_folder,
     return false;
   }
 
-  w1.init(daemon_addr_a);
+  w1.init(true, daemon_addr_a);
 
   uint64_t blocks_fetched = 0;
   bool received_money;
@@ -149,7 +149,7 @@ bool transactions_flow_test(std::string& working_folder,
     return false;
   }
 
-  w2.init(daemon_addr_b);
+  w2.init(true, daemon_addr_b);
 
   MGINFO_GREEN("Using wallets: " << ENDL
     << "Source:  " << w1.get_account().get_public_address_str(MAINNET) << ENDL << "Path: " << working_folder + "/" + path_source_wallet << ENDL
