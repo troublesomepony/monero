@@ -378,7 +378,7 @@ void BlockchainDB::fixup()
   // The key images below are those from the inputs in those transactions.
   // On testnet, there are no such transactions
   // See commit 533acc30eda7792c802ea8b6417917fa99b8bc2b for the fix
-  static const char * const mainnet_genesis_hex = "418015bb9ae982a1975da7d79277c2705727a56894ba0fb246adaabb1f4632e3";
+  static const char * const mainnet_genesis_hex = "5dcce8c7cdc25430262992b7a8a82cda55fd4dfb601f9ac4083d90d014e06af4";
   crypto::hash mainnet_genesis_hash;
   epee::string_tools::hex_to_pod(mainnet_genesis_hex, mainnet_genesis_hash );
   set_batch_transactions(true);
