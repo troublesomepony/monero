@@ -74,6 +74,8 @@
 #include "readline_buffer.h"
 #endif
 
+#include "ascii.h"
+
 using namespace std;
 using namespace epee;
 using namespace cryptonote;
@@ -375,7 +377,7 @@ namespace
     std::stringstream prompt;
     prompt << tr("For URL: ") << url
            << ", " << dnssec_str << std::endl
-           << tr(" Monero Address = ") << addresses[0]
+           << tr(" MONERO X Address = ") << addresses[0]
            << std::endl
            << tr("Is this OK? (Y/n) ")
     ;
@@ -1770,7 +1772,7 @@ bool simple_wallet::save_known_rings(const std::vector<std::string> &args)
 
 bool simple_wallet::version(const std::vector<std::string> &args)
 {
-  message_writer() << "MoneroX '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")";
+  message_writer() << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")";
   return true;
 }
 
@@ -2301,7 +2303,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("donate",
                            boost::bind(&simple_wallet::donate, this, _1),
                            tr("donate [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <amount> [<payment_id>]"),
-                           tr("Donate <amount> to the development team (donate.getmonero.org)."));
+                           tr("Donate <amount> to the Research and Development Team (donate.monerox.pw)."));
   m_cmd_binder.set_handler("sign_transfer",
                            boost::bind(&simple_wallet::sign_transfer, this, _1),
                            tr("sign_transfer [export_raw]"),
@@ -2746,13 +2748,13 @@ bool simple_wallet::ask_wallet_create_if_needed()
         }
         if(wallet_file_exists && keys_file_exists) //Yes wallet, yes keys
         {
-          success_msg_writer() << tr("Wallet and key files found, loading...");
+          success_msg_writer() << tr("Wallet and key files found, loading");
           m_wallet_file = wallet_path;
           return true;
         }
         else if(!wallet_file_exists && keys_file_exists) //No wallet, yes keys
         {
-          success_msg_writer() << tr("Key file found but not wallet file. Regenerating...");
+          success_msg_writer() << tr("Key file found but not wallet file. Regenerating");
           m_wallet_file = wallet_path;
           return true;
         }
@@ -2777,7 +2779,7 @@ bool simple_wallet::ask_wallet_create_if_needed()
           }
           if (ok)
           {
-            success_msg_writer() << tr("Generating new wallet...");
+            success_msg_writer() << tr("Generating new wallet");
             m_generate_new = wallet_path;
             return true;
           }
@@ -4201,7 +4203,7 @@ bool simple_wallet::refresh_main(uint64_t start_height, bool reset, bool is_init
   rdln::suspend_readline pause_readline;
 #endif
 
-  message_writer() << tr("Starting refresh...");
+  message_writer() << tr("Starting refresh");
 
   uint64_t fetched_blocks = 0;
   bool ok = false;
@@ -5727,7 +5729,7 @@ bool simple_wallet::donate(const std::vector<std::string> &args_)
   local_args.push_back(amount_str);
   if (!payment_id_str.empty())
     local_args.push_back(payment_id_str);
-  message_writer() << (boost::format(tr("Donating %s %s to The Monero Project (donate.getmonero.org or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % MONERO_DONATION_ADDR).str();
+  message_writer() << (boost::format(tr("Donating %s %s to The MONERO X Project (donate.monerox.pw or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % MONERO_DONATION_ADDR).str();
   transfer_new(local_args);
   return true;
 }
@@ -7970,12 +7972,14 @@ int main(int argc, char* argv[])
   po::positional_options_description positional_options;
   positional_options.add(arg_command.name, -1);
 
+  ascii();
+
   boost::optional<po::variables_map> vm;
   bool should_terminate = false;
   std::tie(vm, should_terminate) = wallet_args::main(
    argc, argv,
    "monero-wallet-cli [--wallet-file=<file>|--generate-new-wallet=<file>] [<COMMAND>]",
-    sw::tr("This is the command line monero wallet. It needs to connect to a monero\ndaemon to work correctly.\nWARNING: Do not reuse your Monero keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy."),
+    sw::tr("This is the command line MONERO X wallet. It needs to connect to a MONERO X\ndaemon to work correctly."),
     desc_params,
     positional_options,
     [](const std::string &s, bool emphasis){ tools::scoped_message_writer(emphasis ? epee::console_color_white : epee::console_color_default, true) << s; },

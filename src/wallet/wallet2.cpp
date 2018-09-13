@@ -2626,7 +2626,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
       waiter.wait(&tpool);
       if(try_count < 3)
       {
-        LOG_PRINT_L1("Another try pull_blocks (try_count=" << try_count << ")...");
+        LOG_PRINT_L1("Another try pull_blocks (try_count=" << try_count << ")");
         first = true;
         ++try_count;
       }
@@ -3225,12 +3225,12 @@ bool wallet2::load_keys(const std::string& keys_file_name, const epee::wipeable_
 
   r = epee::serialization::load_t_from_binary(m_account, account_data);
   if (r && m_key_on_device) {
-    LOG_PRINT_L0("Account on device. Initing device...");
+    LOG_PRINT_L0("Account on device. Initing device");
     hw::device &hwdev = hw::get_device("Ledger");
     hwdev.init();
     hwdev.connect();
     m_account.set_device(hwdev);
-    LOG_PRINT_L0("Device inited...");
+    LOG_PRINT_L0("Device inited");
   }
 
   if (r)
@@ -3757,7 +3757,7 @@ std::string wallet2::make_multisig(const epee::wipeable_string &password,
     keys_reencryptor = epee::misc_utils::create_scope_leave_handler([&, this, chacha_key]() { m_account.encrypt_keys(chacha_key); m_account.decrypt_viewkey(chacha_key); });
   }
 
-  MINFO("Creating spend key...");
+  MINFO("Creating spend key");
   std::vector<crypto::secret_key> multisig_keys;
   rct::key spend_pkey, spend_skey;
   if (threshold == spend_keys.size() + 1)
@@ -3794,10 +3794,10 @@ std::string wallet2::make_multisig(const epee::wipeable_string &password,
   }
 
   // the multisig view key is shared by all, make one all can derive
-  MINFO("Creating view key...");
+  MINFO("Creating view key");
   crypto::secret_key view_skey = cryptonote::generate_multisig_view_secret_key(get_account().get_keys().m_view_secret_key, view_keys);
 
-  MINFO("Creating multisig address...");
+  MINFO("Creating multisig address");
   CHECK_AND_ASSERT_THROW_MES(m_account.make_multisig(view_skey, rct::rct2sk(spend_skey), rct::rct2pk(spend_pkey), multisig_keys),
       "Failed to create multisig wallet due to bad keys");
   memwipe(&spend_skey, sizeof(rct::key));
@@ -6280,7 +6280,7 @@ bool wallet2::find_and_save_rings(bool force)
   COMMAND_RPC_GET_TRANSACTIONS::request req = AUTO_VAL_INIT(req);
   COMMAND_RPC_GET_TRANSACTIONS::response res = AUTO_VAL_INIT(res);
 
-  MDEBUG("Finding and saving rings...");
+  MDEBUG("Finding and saving rings");
 
   // get payments we made
   std::vector<crypto::hash> txs_hashes;
@@ -11458,13 +11458,5 @@ uint64_t wallet2::get_segregation_fork_height() const
 //----------------------------------------------------------------------------------------------------
 void wallet2::generate_genesis(cryptonote::block& b) const {
   cryptonote::generate_genesis_block(b, get_config(m_nettype).GENESIS_TX, get_config(m_nettype).GENESIS_NONCE);
-  std::cout << "GENESIS_TX" << std::endl;
-  std::cout << get_config(m_nettype).GENESIS_TX << std::endl;
-  std::cout << get_config(m_nettype).GENESIS_NONCE << std::endl;
-  std::cout << "GENESIS:" << std::endl;
-  std::cout << b.hash << std::endl;
-  std::cout << "HEX" << std::endl;
-  std::cout << epee::string_tools::pod_to_hex(b.hash) << std::endl;
-  std::cout << "//" << std::endl;
 }
 }

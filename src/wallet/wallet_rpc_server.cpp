@@ -3342,7 +3342,7 @@ int main(int argc, char** argv) {
       return 1;
     }
 
-    LOG_PRINT_L0(tools::wallet_rpc_server::tr("Loading wallet..."));
+    LOG_PRINT_L0(tools::wallet_rpc_server::tr("Loading wallet"));
     if(!wallet_file.empty())
     {
       wal = tools::wallet2::make_from_file(*vm, true, wallet_file, password_prompt).first;
@@ -3375,7 +3375,7 @@ int main(int argc, char** argv) {
     // if we ^C during potentially length load/refresh, there's no server loop yet
     if (quit)
     {
-      MINFO(tools::wallet_rpc_server::tr("Saving wallet..."));
+      MINFO(tools::wallet_rpc_server::tr("Saving wallet"));
       wal->store();
       MINFO(tools::wallet_rpc_server::tr("Successfully saved"));
       return 1;
@@ -3408,7 +3408,7 @@ just_dir:
   LOG_PRINT_L0(tools::wallet_rpc_server::tr("Stopped wallet RPC server"));
   try
   {
-    LOG_PRINT_L0(tools::wallet_rpc_server::tr("Saving wallet..."));
+    LOG_PRINT_L0(tools::wallet_rpc_server::tr("Saving wallet"));
     wrpc.stop();
     LOG_PRINT_L0(tools::wallet_rpc_server::tr("Successfully saved"));
   }

@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "MoneroX '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
   else
     mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
 
-  LOG_PRINT_L0("Starting...");
+  LOG_PRINT_L0("Starting");
 
   bool opt_testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
   bool opt_stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
   LOG_PRINT_L0("database: " << db_type);
 
   const std::string filename = input;
-  LOG_PRINT_L0("Loading blockchain from folder " << filename << " ...");
+  LOG_PRINT_L0("Loading blockchain from folder " << filename << " ");
 
   try
   {
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
   CHECK_AND_ASSERT_MES(r, 1, "Failed to initialize source blockchain storage");
   LOG_PRINT_L0("Source blockchain storage initialized OK");
 
-  LOG_PRINT_L0("Building usage patterns...");
+  LOG_PRINT_L0("Building usage patterns");
 
   size_t done = 0;
   std::unordered_map<output_data, std::list<reference>> outputs;

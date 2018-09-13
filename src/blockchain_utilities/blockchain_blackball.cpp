@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
     "database", available_dbs.c_str(), default_db_type
   };
   const command_line::arg_descriptor<bool> arg_rct_only  = {"rct-only", "Only work on ringCT outputs", false};
-  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to Monero DB, and path to any fork DBs"};
+  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to MONERO X DB"};
 
   command_line::add_arg(desc_cmd_sett, arg_blackball_db_dir);
   command_line::add_arg(desc_cmd_sett, cryptonote::arg_testnet_on);
@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "MoneroX '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
   else
     mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
 
-  LOG_PRINT_L0("Starting...");
+  LOG_PRINT_L0("Starting");
 
   bool opt_testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
   bool opt_stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
@@ -340,7 +340,7 @@ int main(int argc, char* argv[])
     std::string filename = inputs[n];
     while (boost::ends_with(filename, "/") || boost::ends_with(filename, "\\"))
       filename.pop_back();
-    LOG_PRINT_L0("Loading blockchain from folder " << filename << " ...");
+    LOG_PRINT_L0("Loading blockchain from folder " << filename << " ");
 
     try
     {
@@ -375,7 +375,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  LOG_PRINT_L0("Scanning for blackballable outputs...");
+//  LOG_PRINT_L0("Scanning for blackballable outputs");
 
   size_t done = 0;
   blackball_state_t state;
@@ -493,7 +493,7 @@ int main(int argc, char* argv[])
       }
       if (stop_requested)
       {
-        MINFO("Stopping scan, secondary passes will still happen...");
+        MINFO("Stopping scan, secondary passes will still happen");
         return false;
       }
       return true;

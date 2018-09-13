@@ -270,7 +270,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
   }
 
   std::cout << ENDL;
-  std::cout << "Preparing to read blocks..." << ENDL;
+  std::cout << "Preparing to read blocks" << ENDL;
   std::cout << ENDL;
 
   std::ifstream import_file;
@@ -310,7 +310,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
 
   bool use_batch = opt_batch && !opt_verify;
 
-  MINFO("Reading blockchain from bootstrap file...");
+  MINFO("Reading blockchain from bootstrap file");
   std::cout << ENDL;
 
   std::vector<block_complete_entry> blocks;
@@ -642,7 +642,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "MoneroX '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -686,7 +686,7 @@ int main(int argc, char* argv[])
   else
     mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
 
-  MINFO("Starting...");
+  MINFO("Starting");
 
   boost::filesystem::path fs_import_file_path;
 
@@ -776,7 +776,7 @@ int main(int argc, char* argv[])
 
   if (!command_line::is_arg_defaulted(vm, arg_drop_hf))
   {
-    MINFO("Dropping hard fork tables...");
+    MINFO("Dropping hard fork tables");
     core.get_blockchain_storage().get_db().drop_hard_fork_info();
     core.deinit();
     return 0;

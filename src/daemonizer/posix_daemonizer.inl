@@ -84,7 +84,7 @@ namespace daemonizer
   {
     if (command_line::has_arg(vm, arg_detach))
     {
-      tools::success_msg_writer() << "Forking to background...";
+      tools::success_msg_writer() << "Forking to background";
       std::string pidfile;
       if (command_line::has_arg(vm, arg_pidfile))
       {

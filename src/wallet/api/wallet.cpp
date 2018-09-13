@@ -706,7 +706,7 @@ bool WalletImpl::close(bool store)
 {
 
     bool result = false;
-    LOG_PRINT_L1("closing wallet...");
+    LOG_PRINT_L1("closing wallet");
     try {
         if (store) {
             // Do not store wallet with invalid status
@@ -717,9 +717,9 @@ bool WalletImpl::close(bool store)
                 LOG_ERROR("Status_Critical - not saving wallet");
             LOG_PRINT_L1("wallet::store done");
         }
-        LOG_PRINT_L1("Calling wallet::stop...");
+//        LOG_PRINT_L1("Calling wallet::stop");
         m_wallet->stop();
-        LOG_PRINT_L1("wallet::stop done");
+//        LOG_PRINT_L1("wallet::stop done");
         m_wallet->deinit();
         result = true;
         clearStatus();
@@ -1937,7 +1937,7 @@ void WalletImpl::refreshThreadFunc()
         if (m_refreshThreadDone) {
             break;
         }
-        LOG_PRINT_L3(__FUNCTION__ << ": waiting for refresh...");
+        LOG_PRINT_L3(__FUNCTION__ << ": waiting for refresh");
         // if auto refresh enabled, we wait for the "m_refreshIntervalSeconds" interval.
         // if not - we wait forever
         if (m_refreshIntervalMillis > 0) {
@@ -1947,11 +1947,11 @@ void WalletImpl::refreshThreadFunc()
             m_refreshCV.wait(lock);
         }
 
-        LOG_PRINT_L3(__FUNCTION__ << ": refresh lock acquired...");
+        LOG_PRINT_L3(__FUNCTION__ << ": refresh lock acquired");
         LOG_PRINT_L3(__FUNCTION__ << ": m_refreshEnabled: " << m_refreshEnabled);
         LOG_PRINT_L3(__FUNCTION__ << ": m_status: " << status());
         if (m_refreshEnabled) {
-            LOG_PRINT_L3(__FUNCTION__ << ": refreshing...");
+            LOG_PRINT_L3(__FUNCTION__ << ": refreshing");
             doRefresh();
         }
     }
@@ -1992,7 +1992,7 @@ void WalletImpl::doRefresh()
 void WalletImpl::startRefresh()
 {
     if (!m_refreshEnabled) {
-        LOG_PRINT_L2(__FUNCTION__ << ": refresh started/resumed...");
+        LOG_PRINT_L2(__FUNCTION__ << ": refresh started/resumed");
         m_refreshEnabled = true;
         m_refreshCV.notify_one();
     }
@@ -2012,7 +2012,7 @@ void WalletImpl::stopRefresh()
 
 void WalletImpl::pauseRefresh()
 {
-    LOG_PRINT_L2(__FUNCTION__ << ": refresh paused...");
+    LOG_PRINT_L2(__FUNCTION__ << ": refresh paused");
     // TODO synchronize access
     if (!m_refreshThreadDone) {
         m_refreshEnabled = false;

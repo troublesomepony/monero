@@ -51,7 +51,7 @@ include_directories(${MINIUPNP_INCLUDE_DIR})
 #
 #set(UPNP_LIBRARIES "libminiupnpc-static" PARENT_SCOPE)
 
-find_package(Unbound)
+find_package(Unbound REQUIRED)
 
 add_subdirectory(db_drivers)
 add_subdirectory(easylogging++)

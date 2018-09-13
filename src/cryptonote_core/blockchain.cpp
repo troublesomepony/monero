@@ -1457,7 +1457,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
       // this alternate chain with it.
       if (!m_db->block_exists(alt_chain.front()->second.bl.prev_id))
       {
-        MERROR("alternate chain does not appear to connect to main chain...");
+        MERROR("alternate chain does not appear to connect to main chain");
         return false;
       }
 
@@ -3858,7 +3858,7 @@ void Blockchain::check_against_checkpoints(const checkpoints& points, bool enfor
       }
       else
       {
-        LOG_ERROR("WARNING: local blockchain failed to pass a MoneroPulse checkpoint, and you could be on a fork. You should either sync up from scratch, OR download a fresh blockchain bootstrap, OR enable checkpoint enforcing with the --enforce-dns-checkpointing command-line option");
+        LOG_ERROR("WARNING: local blockchain failed to pass a MONERO X Pulse checkpoint, and you could be on a fork. You should either sync up from scratch, OR download a fresh blockchain bootstrap, OR enable checkpoint enforcing with the --enforce-dns-checkpointing command-line option");
       }
     }
   }
@@ -4622,7 +4622,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "0924bc1c47aae448321fde949554be192878dd800e6489379865218f84eacbca";
+static const char expected_block_hashes_hash[] = "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b";
 void Blockchain::load_compiled_in_block_hashes()
 {
   const bool testnet = m_nettype == TESTNET;
@@ -4651,6 +4651,7 @@ void Blockchain::load_compiled_in_block_hashes()
       if (hash != expected_hash)
       {
         MERROR("Block hash data does not match expected hash");
+//        MERROR(hash);
         return;
       }
     }

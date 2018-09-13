@@ -33,17 +33,12 @@
 #include <string>
 #include <boost/uuid/uuid.hpp>
 
-#define MONEROX_MULTIPLIER                              (2)
-#define MONEROX_THRESHOLD                               (.1)
-#define MONEROX_SIZE_MULTIPLIER                         (MONEROX_MULTIPLIER + MONEROX_THRESHOLD)
-#define MONEROX_COUNT_MULTIPLIER                        (MONEROX_MULTIPLIER - MONEROX_THRESHOLD)
-
 #define CRYPTONOTE_DNS_TIMEOUT_MS                       20000
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_SIZE                       500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      static_cast<int>(196608 * MONEROX_SIZE_MULTIPLIER) //size of block (bytes) that is the maximum that miners will produce
-#define CRYPTONOTE_MAX_TX_SIZE                          static_cast<int>(1000000000 * MONEROX_SIZE_MULTIPLIER)
+#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      static_cast<int>(196608) //size of block (bytes) that is the maximum that miners will produce
+#define CRYPTONOTE_MAX_TX_SIZE                          static_cast<int>(1000000000)
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
 #define CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW            60
 #define CURRENT_TRANSACTION_VERSION                     2
@@ -95,21 +90,21 @@
 #define DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN             DIFFICULTY_TARGET_V1 //just alias; used by tests
 
 
-#define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          static_cast<int>(10000 * MONEROX_COUNT_MULTIPLIER)  //by default, blocks ids count in synchronizing
+#define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          static_cast<int>(10000)  //by default, blocks ids count in synchronizing
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_PRE_V4       100    //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              static_cast<int>(20 * MONEROX_COUNT_MULTIPLIER)     //by default, blocks count in blocks downloading
+#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              static_cast<int>(20)     //by default, blocks count in blocks downloading
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400 * 3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
 
-#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT           static_cast<int>(1000 * MONEROX_COUNT_MULTIPLIER)
+#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT           static_cast<int>(1000)
 
-#define P2P_LOCAL_WHITE_PEERLIST_LIMIT                  static_cast<int>(1000 * MONEROX_COUNT_MULTIPLIER)
-#define P2P_LOCAL_GRAY_PEERLIST_LIMIT                   static_cast<int>(5000 * MONEROX_COUNT_MULTIPLIER)
+#define P2P_LOCAL_WHITE_PEERLIST_LIMIT                  static_cast<int>(1000)
+#define P2P_LOCAL_GRAY_PEERLIST_LIMIT                   static_cast<int>(5000)
 
-#define P2P_DEFAULT_CONNECTIONS_COUNT                   8
-#define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //secondes
-#define P2P_DEFAULT_PACKET_MAX_SIZE                     static_cast<int>(50000000 * MONEROX_SIZE_MULTIPLIER)     //50000000 * MONEROX_SIZE_MULTIPLIER bytes maximum packet size
+#define P2P_DEFAULT_CONNECTIONS_COUNT                   128 // 8
+#define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //seconds
+#define P2P_DEFAULT_PACKET_MAX_SIZE                     static_cast<int>(50000000)     //50000000 bytes maximum packet size
 #define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  250
 #define P2P_DEFAULT_CONNECTION_TIMEOUT                  5000       //5 seconds
 #define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             2000       //2 seconds

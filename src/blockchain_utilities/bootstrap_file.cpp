@@ -268,7 +268,7 @@ bool BootstrapFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
   m_blockchain_storage = _blockchain_storage;
   m_tx_pool = _tx_pool;
   uint64_t progress_interval = 100;
-  MINFO("Storing blocks raw data...");
+//  MINFO("Storing blocks raw data");
   if (!BootstrapFile::open_writer(output_file))
   {
     MFATAL("failed to open raw file for write");
@@ -463,7 +463,7 @@ uint64_t BootstrapFile::count_blocks(const std::string& import_file_path, std::s
   uint64_t full_header_size; // 4 byte magic + length of header structures
   full_header_size = seek_to_first_chunk(import_file);
 
-  MINFO("Scanning blockchain from bootstrap file...");
+//  MINFO("Scanning blockchain from bootstrap file");
   bool quit = false;
   uint64_t bytes_read = 0, blocks;
   int progress_interval = 10;

@@ -171,7 +171,7 @@ bool t_daemon::run(bool interactive)
       return false;
     }
 
-    MINFO("Starting ZMQ server...");
+//    MINFO("Starting ZMQ server");
     zmq_server.run();
 
     MINFO(std::string("ZMQ server started at ") + zmq_rpc_bind_address

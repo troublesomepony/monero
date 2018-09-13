@@ -50,7 +50,7 @@ public:
     )
     : m_protocol{core.get(), nullptr, offline}
   {
-    MGINFO("Initializing cryptonote protocol...");
+//    MGINFO("Initializing cryptonote protocol");
     if (!m_protocol.init(vm))
     {
       throw std::runtime_error("Failed to initialize cryptonote protocol.");
@@ -72,7 +72,7 @@ public:
 
   ~t_protocol()
   {
-    MGINFO("Stopping cryptonote protocol...");
+//    MGINFO("Stopping cryptonote protocol");
     try {
       m_protocol.deinit();
       m_protocol.set_p2p_endpoint(nullptr);

@@ -144,7 +144,7 @@ bool BlocksdatFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
     block_stop = m_blockchain_storage->get_current_blockchain_height() - 1;
     MINFO("Using block height of source blockchain: " << block_stop);
   }
-  MINFO("Storing blocks raw data...");
+//  MINFO("Storing blocks raw data");
   if (!BlocksdatFile::open_writer(output_file, block_stop))
   {
     MFATAL("failed to open raw file for write");

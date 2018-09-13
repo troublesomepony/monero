@@ -1,8 +1,12 @@
-# Monero-X v0.0.1-alpha.0 `work in progress`
+# Monero-X v0.1.0 <sup>`alpha`</sup>
 
-**Monero-X** is Vanilla Monero Hardfork with clear Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished.
+**Monero-X** is a Monero Github trunk Hardfork with different Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished.
 
-![mr. X](./mrx.png)
+Another approach is adopting Monero engine to be true `Data Driven` instead of Monero maintainers vision:
+
+> https://github.com/monero-project/monero/issues/4343
+
+And this is only one rejected issue of many.
 
 Total Supply is limited to 180M and **size limits are doubled**. This is **highly experimental currency** supposed to use to test and debug independent Smart Contracts implementation based on **Python3** interpreter as Contracts Language and `pyledger` with `monero-python` libraries as contracts runtime.
 
@@ -37,6 +41,10 @@ Sample output:
 -- The C compiler identification is AppleClang 9.1.0.9020039
 -- The CXX compiler identification is AppleClang 9.1.0.9020039
 ```
+
+## mr X
+
+![mr. X](./mrx.png)
 
 ## Copyrights
 

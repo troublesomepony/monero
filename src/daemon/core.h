@@ -83,7 +83,7 @@ public:
   bool run()
   {
     //initialize core here
-    MGINFO("Initializing core...");
+//    MGINFO("Initializing core");
     std::string config_subdir = get_config_subdir();
     if (!m_core.init(m_vm_HACK, config_subdir.empty() ? NULL : config_subdir.c_str()))
     {
@@ -100,12 +100,12 @@ public:
 
   ~t_core()
   {
-    MGINFO("Deinitializing core...");
+    MGINFO("Deinitializing core");
     try {
       m_core.deinit();
       m_core.set_cryptonote_protocol(nullptr);
     } catch (...) {
-      MERROR("Failed to deinitialize core...");
+      MERROR("Failed to deinitialize core");
     }
   }
 };

@@ -30,6 +30,8 @@
 
 #include <unordered_set>
 #include <random>
+#include <iterator>
+#include <algorithm>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
@@ -653,11 +655,34 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(r, false, "failed to parse coinbase tx from hard coded blob");
     r = parse_and_validate_tx_from_blob(tx_bl, bl.miner_tx);
     CHECK_AND_ASSERT_MES(r, false, "failed to parse coinbase tx from hard coded blob");
+    bl.miner_tx.unlock_time =  CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW; // always 0 + 60
     bl.major_version = CURRENT_BLOCK_MAJOR_VERSION;
     bl.minor_version = CURRENT_BLOCK_MINOR_VERSION;
     bl.timestamp = 0;
     bl.nonce = nonce;
     miner::find_nonce_for_given_block(bl, 1, 0);
+
+    std::cout << std::endl;
+    std::cout << "hash(" << epee::string_tools::pod_to_hex(bl.hash) << ")" << std::endl;
+    std::cout << "bl.hash: " << bl.hash << std::endl;
+//    std::cout << "bl.prev_id: " << bl.prev_id << std::endl;
+    std::cout << "bl.major_version: " << std::to_string(bl.major_version) << std::endl;
+    std::cout << "bl.minor_version: " << std::to_string(bl.minor_version) << std::endl;
+    std::cout << "bl.timestamp: " << bl.timestamp << std::endl;
+    std::cout << "bl.nonce: " << bl.nonce << std::endl;
+    std::cout << std::endl;
+    std::cout << "bl.miner_tx.version: " << std::to_string(bl.miner_tx.version) << std::endl;
+    std::cout << "bl.miner_tx.unlock_time: " << std::to_string(bl.miner_tx.unlock_time) << std::endl;
+    std::cout << "bl.miner_tx.hash: " << bl.miner_tx.hash << std::endl;
+    std::cout << "bl.miner_tx.blob_size: " << std::to_string(bl.miner_tx.blob_size) << std::endl;
+
+    std::cout << "bl.miner_tx.extra: " << std::endl;
+
+    for (auto extra: bl.miner_tx.extra)
+      std::cout << extra;
+
+    std::cout << std::endl << std::endl;
+
     bl.invalidate_hashes();
     return true;
   }

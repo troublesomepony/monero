@@ -2873,7 +2873,7 @@ void BlockchainLMDB::batch_commit()
 
   check_open();
 
-  LOG_PRINT_L3("batch transaction: committing...");
+  LOG_PRINT_L3("batch transaction: committing");
   TIME_MEASURE_START(time1);
   m_write_txn->commit();
   TIME_MEASURE_FINISH(time1);
@@ -2908,7 +2908,7 @@ void BlockchainLMDB::batch_stop()
   if (m_writer != boost::this_thread::get_id())
     throw1(DB_ERROR("batch transaction owned by other thread"));
   check_open();
-  LOG_PRINT_L3("batch transaction: committing...");
+  LOG_PRINT_L3("batch transaction: committing");
   TIME_MEASURE_START(time1);
   try
   {
@@ -3513,7 +3513,7 @@ void BlockchainLMDB::migrate_0_1()
   char *ptr;
 
   MGINFO_YELLOW("Migrating blockchain from DB version 0 to 1 - this may take a while:");
-  MINFO("updating blocks, hf_versions, outputs, txs, and spent_keys tables...");
+  MINFO("updating blocks, hf_versions, outputs, txs, and spent_keys tables");
 
   do {
     result = mdb_txn_begin(m_env, NULL, 0, txn);
@@ -3525,7 +3525,7 @@ void BlockchainLMDB::migrate_0_1()
       throw0(DB_ERROR(lmdb_error("Failed to query m_blocks: ", result).c_str()));
     m_height = db_stats.ms_entries;
     MINFO("Total number of blocks: " << m_height);
-    MINFO("block migration will update block_heights, block_info, and hf_versions...");
+    MINFO("block migration will update block_heights, block_info, and hf_versions");
 
     MINFO("migrating block_heights:");
     MDB_dbi o_heights;
@@ -4047,7 +4047,7 @@ void BlockchainLMDB::migrate_1_2()
   char *ptr;
 
   MGINFO_YELLOW("Migrating blockchain from DB version 1 to 2 - this may take a while:");
-  MINFO("updating txs_pruned and txs_prunable tables...");
+  MINFO("updating txs_pruned and txs_prunable tables");
 
   do {
     result = mdb_txn_begin(m_env, NULL, 0, txn);
@@ -4202,7 +4202,7 @@ void BlockchainLMDB::migrate_2_3()
       throw0(DB_ERROR(lmdb_error("Failed to query m_blocks: ", result).c_str()));
     const uint64_t blockchain_height = db_stats.ms_entries;
 
-    MDEBUG("enumerating rct outputs...");
+    MDEBUG("enumerating rct outputs");
     std::vector<uint64_t> distribution(blockchain_height, 0);
     bool r = for_all_outputs(0, [&](uint64_t height) {
       if (height >= blockchain_height)

@@ -628,7 +628,7 @@ namespace nodetool
     attrs.set_stack_size(THREAD_STACK_SIZE);
 
     //go to loop
-    MINFO("Run net_service loop( " << thrds_count << " threads)...");
+    MINFO("Run net_service loop( " << thrds_count << " threads)");
     if(!m_net_server.run_server(thrds_count, true, attrs))
     {
       LOG_ERROR("Failed to run net tcp server!");
@@ -922,7 +922,7 @@ namespace nodetool
     }
     MDEBUG("Connecting to " << na.str() << "(peer_type=" << peer_type << ", last_seen: "
         << (last_seen_stamp ? epee::misc_utils::get_time_interval_string(time(NULL) - last_seen_stamp):"never")
-        << ")...");
+        << ")");
 
     CHECK_AND_ASSERT_MES(na.get_type_id() == epee::net_utils::ipv4_network_address::ID, false,
         "Only IPv4 addresses are supported here");
@@ -987,7 +987,7 @@ namespace nodetool
   {
     LOG_PRINT_L1("Connecting to " << na.str() << "(last_seen: "
                                   << (last_seen_stamp ? epee::misc_utils::get_time_interval_string(time(NULL) - last_seen_stamp):"never")
-                                  << ")...");
+                                  << ")");
 
     CHECK_AND_ASSERT_MES(na.get_type_id() == epee::net_utils::ipv4_network_address::ID, false,
         "Only IPv4 addresses are supported here");

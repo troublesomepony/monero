@@ -538,7 +538,7 @@ void LogBuilder::convertToColoredOutput(base::type::string_t* logLine, Level lev
   else if (level == Level::Debug)
     *logLine = ELPP_LITERAL("\x1b[32m") + *logLine + resetColor;
   else if (level == Level::Info)
-    *logLine = ELPP_LITERAL("\x1b[36m") + *logLine + resetColor;
+    *logLine = ELPP_LITERAL("\x1b[15m") + *logLine + resetColor;
   else if (level == Level::Trace)
     *logLine = ELPP_LITERAL("\x1b[35m") + *logLine + resetColor;
 }

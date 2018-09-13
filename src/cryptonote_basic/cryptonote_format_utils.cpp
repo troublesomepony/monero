@@ -675,7 +675,7 @@ namespace cryptonote
     std::string res = string_tools::pod_to_hex(h);
     CHECK_AND_ASSERT_MES(res.size() == 64, res, "wrong hash256 with string_tools::pod_to_hex conversion");
     auto erased_pos = res.erase(8, 48);
-    res.insert(8, "....");
+    res.insert(8, ".");
     return res;
   }
   //---------------------------------------------------------------
@@ -782,15 +782,15 @@ namespace cryptonote
     switch (std::atomic_load(&default_decimal_point))
     {
       case 12:
-        return "monero";
+        return "eks";
       case 9:
-        return "millinero";
+        return "millieks";
       case 6:
-        return "micronero";
+        return "microeks";
       case 3:
-        return "nanonero";
+        return "nanoeks";
       case 0:
-        return "piconero";
+        return "picoeks";
       default:
         ASSERT_MES_AND_THROW("Invalid decimal point specification: " << default_decimal_point);
     }

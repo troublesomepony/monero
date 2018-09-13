@@ -304,7 +304,7 @@ namespace cryptonote
     uint64_t max_block_height = std::max(hshd.current_height,m_core.get_current_blockchain_height());
     uint64_t last_block_v1 = m_core.get_nettype() == TESTNET ? 624633 : m_core.get_nettype() == MAINNET ? 1009826 : (uint64_t)-1;
     uint64_t diff_v2 = max_block_height > last_block_v1 ? std::min(abs_diff, max_block_height - last_block_v1) : 0;
-    MCLOG(is_inital ? el::Level::Info : el::Level::Debug, "global", context <<  "Sync data returned a new top block candidate: " << m_core.get_current_blockchain_height() << " -> " << hshd.current_height
+    /*MCLOG*/MCLOG_YELLOW(is_inital ? el::Level::Info : el::Level::Debug, "global", context <<  "Sync data returned a new top block candidate: " << m_core.get_current_blockchain_height() << " -> " << hshd.current_height
       << " [Your node is " << abs_diff << " blocks (" << ((abs_diff - diff_v2) / (24 * 60 * 60 / DIFFICULTY_TARGET_V1)) + (diff_v2 / (24 * 60 * 60 / DIFFICULTY_TARGET_V2)) << " days) "
       << (0 <= diff ? std::string("behind") : std::string("ahead"))
       << "] " << ENDL << "SYNCHRONIZATION started");
@@ -986,7 +986,7 @@ skip:
         MINFO("Failed to lock m_sync_lock, going back to download");
         goto skip;
       }
-      MDEBUG(context << " lock m_sync_lock, adding blocks to chain...");
+      MDEBUG(context << " lock m_sync_lock, adding blocks to chain");
 
       {
         m_core.pause_mine();
@@ -1214,7 +1214,7 @@ skip:
   template<class t_core>
   bool t_cryptonote_protocol_handler<t_core>::kick_idle_peers()
   {
-    MTRACE("Checking for idle peers...");
+    MTRACE("Checking for idle peers");
     std::vector<boost::uuids::uuid> kick_connections;
     m_p2p->for_each_connection([&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t support_flags)->bool
     {
@@ -1573,7 +1573,7 @@ skip:
       {
         if (m_core.get_current_blockchain_height() >= m_core.get_target_blockchain_height())
         {
-          MGINFO_GREEN("SYNCHRONIZED OK");
+          MGINFO_GREEN("SYNCHRONIZED");
           on_connection_synchronized();
         }
       }
@@ -1591,11 +1591,7 @@ skip:
     bool val_expected = false;
     if(m_synchronized.compare_exchange_strong(val_expected, true))
     {
-      MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
-        << "You are now synchronized with the network. You may now start monero-wallet-cli." << ENDL
-        << ENDL
-        << "Use the \"help\" command to see the list of available commands." << ENDL
-        << "**********************************************************************");
+      MGINFO_BLUE("You are now synchronized with the network. You may now start monero-wallet-cli.");
       m_core.on_synchronized();
     }
     m_core.safesyncmode(true);

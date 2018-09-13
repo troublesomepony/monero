@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "MoneroX '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
     mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
   block_stop = command_line::get_arg(vm, arg_block_stop);
 
-  LOG_PRINT_L0("Starting...");
+  LOG_PRINT_L0("Starting");
 
   bool opt_testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
   bool opt_stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   folder /= db->get_db_name();
   const std::string filename = folder.string();
 
-  LOG_PRINT_L0("Loading blockchain from folder " << filename << " ...");
+  LOG_PRINT_L0("Loading blockchain from folder " << filename << " ");
   try
   {
     db->open(filename, DBF_RDONLY);
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 
   CHECK_AND_ASSERT_MES(r, 1, "Failed to initialize source blockchain storage");
   LOG_PRINT_L0("Source blockchain storage initialized OK");
-  LOG_PRINT_L0("Exporting blockchain raw data...");
+//  LOG_PRINT_L0("Exporting blockchain raw data");
 
   if (opt_blocks_dat)
   {
