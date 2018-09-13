@@ -132,7 +132,7 @@ int main(int argc, char const * argv[])
     // Monero Version
     if (command_line::get_arg(vm, command_line::arg_version))
     {
-      std::cout << "MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL;
+      std::cout << "MONERO X \"" << MONERO_RELEASE_NAME << "\" (v" << MONERO_VERSION_FULL << ")" << ENDL;
       return 0;
     }
 
@@ -285,7 +285,7 @@ int main(int argc, char const * argv[])
       tools::set_max_concurrency(command_line::get_arg(vm, daemon_args::arg_max_concurrency));
 
     // logging is now set up
-    MGINFO("MONERO X '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")");
+    MGINFO("MONERO X \"" << MONERO_RELEASE_NAME << "\" (v" << MONERO_VERSION_FULL << ")");
 
     MINFO("Moving from main() into the daemonize now.");
 

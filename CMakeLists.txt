@@ -172,14 +172,14 @@ set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 
 # set this to 0 if per-block checkpoint needs to be disabled
-set(PER_BLOCK_CHECKPOINT 0)
+set(PER_BLOCK_CHECKPOINT 1)
 
 if(PER_BLOCK_CHECKPOINT)
   add_definitions("-DPER_BLOCK_CHECKPOINT")
 endif()
-
-list(INSERT CMAKE_MODULE_PATH 0
-  "${CMAKE_SOURCE_DIR}/cmake")
+#
+#list(INSERT CMAKE_MODULE_PATH 0
+#  "${CMAKE_SOURCE_DIR}/cmake")
 
 if (NOT DEFINED ENV{DEVELOPER_LOCAL_TOOLS})
   message(STATUS "Could not find DEVELOPER_LOCAL_TOOLS in env (not required)")
@@ -208,9 +208,9 @@ else()
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-enable_testing()
+#enable_testing()
 
-option(BUILD_DOCUMENTATION "Build the Doxygen documentation." ON)
+option(BUILD_DOCUMENTATION "Build the Doxygen documentation." OFF)
 option(BUILD_TESTS "Build tests." OFF)
 
 # Check whether we're on a 32-bit or 64-bit system
@@ -283,7 +283,7 @@ if (BUILD_SHARED_LIBS)
 else()
   message(STATUS "Building internal libraries as static")
 endif()
-set(PIC_FLAG "-fPIC")
+#set(PIC_FLAG "-fPIC")
 
 if(MINGW)
   string(REGEX MATCH "^[^/]:/[^/]*" msys2_install_path "${CMAKE_C_COMPILER}")
@@ -321,54 +321,56 @@ endif()
 # memory was the default in Cryptonote before Monero implemented LMDB, it still works but is unnecessary.
 # set(DATABASE memory)
 set(DATABASE lmdb)
+#
+#if (DEFINED ENV{DATABASE})
+#  set(DATABASE $ENV{DATABASE})
+#  message(STATUS "DATABASE set: ${DATABASE}")
+#else()
+#  message(STATUS "Could not find DATABASE in env (not required unless you want to change database type from default: ${DATABASE})")
+#endif()
+#
+#set(BERKELEY_DB_OVERRIDE 0)
+#if (DEFINED ENV{BERKELEY_DB})
+#  set(BERKELEY_DB_OVERRIDE 1)
+#  set(BERKELEY_DB $ENV{BERKELEY_DB})
+#elseif()
+#  set(BERKELEY_DB 0)
+#endif()
+#
+#if (DATABASE STREQUAL "lmdb")
+#  message(STATUS "Using LMDB as default DB type")
+#  set(BLOCKCHAIN_DB DB_LMDB)
+#  add_definitions("-DDEFAULT_DB_TYPE=\"lmdb\"")
+#elseif (DATABASE STREQUAL "berkeleydb")
+#  find_package(BerkeleyDB)
+#  if(NOT BERKELEY_DB)
+#      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
+#  else()
+#    message(STATUS "Found BerkeleyDB include (db.h) in ${BERKELEY_DB_INCLUDE_DIR}")
+#    if(BERKELEY_DB_LIBRARIES)
+#      message(STATUS "Found BerkeleyDB shared library")
+#      set(BDB_STATIC false CACHE BOOL "BDB Static flag")
+#      set(BDB_INCLUDE ${BERKELEY_DB_INCLUDE_DIR} CACHE STRING "BDB include path")
+#      set(BDB_LIBRARY ${BERKELEY_DB_LIBRARIES} CACHE STRING "BDB library name")
+#      set(BDB_LIBRARY_DIRS "" CACHE STRING "BDB Library dirs")
+#      set(BERKELEY_DB 1)
+#    else()
+#      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
+#    endif()
+#  endif()
+#
+#  message(STATUS "Using Berkeley DB as default DB type")
+#  add_definitions("-DDEFAULT_DB_TYPE=\"berkeley\"")
+#else()
+#  die("Invalid database type: ${DATABASE}")
+#endif()
+#
+#if(BERKELEY_DB)
+#  add_definitions("-DBERKELEY_DB")
+#endif()
 
-if (DEFINED ENV{DATABASE})
-  set(DATABASE $ENV{DATABASE})
-  message(STATUS "DATABASE set: ${DATABASE}")
-else()
-  message(STATUS "Could not find DATABASE in env (not required unless you want to change database type from default: ${DATABASE})")
-endif()
-
-set(BERKELEY_DB_OVERRIDE 0)
-if (DEFINED ENV{BERKELEY_DB})
-  set(BERKELEY_DB_OVERRIDE 1)
-  set(BERKELEY_DB $ENV{BERKELEY_DB})
-elseif()
-  set(BERKELEY_DB 0)
-endif()
-
-if (DATABASE STREQUAL "lmdb")
-  message(STATUS "Using LMDB as default DB type")
-  set(BLOCKCHAIN_DB DB_LMDB)
-  add_definitions("-DDEFAULT_DB_TYPE=\"lmdb\"")
-elseif (DATABASE STREQUAL "berkeleydb")
-  find_package(BerkeleyDB)
-  if(NOT BERKELEY_DB)
-      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
-  else()
-    message(STATUS "Found BerkeleyDB include (db.h) in ${BERKELEY_DB_INCLUDE_DIR}")
-    if(BERKELEY_DB_LIBRARIES)
-      message(STATUS "Found BerkeleyDB shared library")
-      set(BDB_STATIC false CACHE BOOL "BDB Static flag")
-      set(BDB_INCLUDE ${BERKELEY_DB_INCLUDE_DIR} CACHE STRING "BDB include path")
-      set(BDB_LIBRARY ${BERKELEY_DB_LIBRARIES} CACHE STRING "BDB library name")
-      set(BDB_LIBRARY_DIRS "" CACHE STRING "BDB Library dirs")
-      set(BERKELEY_DB 1)
-    else()
-      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
-    endif()
-  endif()
-
-  message(STATUS "Using Berkeley DB as default DB type")
-  add_definitions("-DDEFAULT_DB_TYPE=\"berkeley\"")
-else()
-  die("Invalid database type: ${DATABASE}")
-endif()
-
-if(BERKELEY_DB)
-  add_definitions("-DBERKELEY_DB")
-endif()
-
+set(BLOCKCHAIN_DB DB_LMDB)
+add_definitions("-DDEFAULT_DB_TYPE=\"lmdb\"")
 add_definitions("-DBLOCKCHAIN_DB=${BLOCKCHAIN_DB}")
 
 # Can't install hook in static build on OSX, because OSX linker does not support --wrap
@@ -472,7 +474,7 @@ if (PCSC_FOUND)
   add_definitions(-DHAVE_PCSC)
   include_directories(${PCSC_INCLUDE_DIR})
   link_directories(${LIBPCSC_LIBRARY_DIRS})
-else (PCSC_FOUND)
+else()
   message(STATUS "Could not find PCSC")
 endif()
 
@@ -506,14 +508,14 @@ else()
   endif()
   set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
   if(NOT MINGW)
-    set(WARNINGS_AS_ERRORS_FLAG "-Werror")
+    #set(WARNINGS_AS_ERRORS_FLAG "-Werror")
   endif()
   if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(ARM)
       set(WARNINGS "${WARNINGS} -Wno-error=inline-asm")
     endif()
   else()
-    set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-error=cpp")
+#    set(WARNINGS "${WARNINGS} -Wno-error=maybe-uninitialized -Wno-error=cpp")
   endif()
   if(MINGW)
     set(WARNINGS "${WARNINGS} -Wno-error=unused-value -Wno-error=unused-but-set-variable")
@@ -578,7 +580,7 @@ else()
   # linker
   if (NOT WIN32)
     # Windows binaries die on startup with PIE
-    add_linker_flag_if_supported(-pie LD_SECURITY_FLAGS)
+#    add_linker_flag_if_supported(-pie LD_SECURITY_FLAGS)
   endif()
   add_linker_flag_if_supported(-Wl,-z,relro LD_SECURITY_FLAGS)
   add_linker_flag_if_supported(-Wl,-z,now LD_SECURITY_FLAGS)
@@ -848,9 +850,10 @@ if(USE_READLINE)
   endif()
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=user-defined-warnings")
+
 if(ANDROID)
   set(ATOMIC libatomic.a)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=user-defined-warnings")
 endif()
 if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND ARCH_WIDTH EQUAL "32" AND NOT IOS AND NOT FREEBSD)
   find_library(ATOMIC atomic)
@@ -881,32 +884,32 @@ endif()
 
 add_subdirectory(contrib)
 add_subdirectory(src)
+#
+#if(BUILD_TESTS)
+#  add_subdirectory(tests)
+#endif()
 
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-endif()
-
-if(BUILD_DOCUMENTATION)
-  set(DOC_GRAPHS "YES" CACHE STRING "Create dependency graphs (needs graphviz)")
-  set(DOC_FULLGRAPHS "NO" CACHE STRING "Create call/callee graphs (large)")
-
-  find_program(DOT_PATH dot)
-
-  if (DOT_PATH STREQUAL "DOT_PATH-NOTFOUND")
-    message("Doxygen: graphviz not found - graphs disabled")
-    set(DOC_GRAPHS "NO")
-  endif()
-
-  find_package(Doxygen)
-  if(DOXYGEN_FOUND)
-    configure_file("cmake/Doxyfile.in" "Doxyfile" @ONLY)
-    configure_file("cmake/Doxygen.extra.css.in" "Doxygen.extra.css" @ONLY)
-    add_custom_target(doc
-      ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Generating API documentation with Doxygen.." VERBATIM)
-  endif()
-endif()
+#if(BUILD_DOCUMENTATION)
+#  set(DOC_GRAPHS "YES" CACHE STRING "Create dependency graphs (needs graphviz)")
+#  set(DOC_FULLGRAPHS "NO" CACHE STRING "Create call/callee graphs (large)")
+#
+#  find_program(DOT_PATH dot)
+#
+#  if (DOT_PATH STREQUAL "DOT_PATH-NOTFOUND")
+#    message("Doxygen: graphviz not found - graphs disabled")
+#    set(DOC_GRAPHS "NO")
+#  endif()
+#
+#  find_package(Doxygen)
+#  if(DOXYGEN_FOUND)
+#    configure_file("cmake/Doxyfile.in" "Doxyfile" @ONLY)
+#    configure_file("cmake/Doxygen.extra.css.in" "Doxygen.extra.css" @ONLY)
+#    add_custom_target(doc
+#      ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+#      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#      COMMENT "Generating API documentation with Doxygen.." VERBATIM)
+#  endif()
+#endif()
 
 # when ON - will install libwallet_merged into "lib"
 option(BUILD_GUI_DEPS "Build GUI dependencies." OFF)
@@ -916,4 +919,4 @@ option(BUILD_GUI_DEPS "Build GUI dependencies." OFF)
 option(INSTALL_VENDORED_LIBUNBOUND "Install libunbound binary built from source vendored with this repo." OFF)
 
 
-CHECK_C_COMPILER_FLAG(-std=c11 HAVE_C11)
+#CHECK_C_COMPILER_FLAG(-std=c11 HAVE_C11)
