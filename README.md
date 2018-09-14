@@ -1,6 +1,6 @@
 # Monero-X v0.1.0 <sup>`alpha`</sup>
 
-**Monero-X** is a Monero Github trunk Hardfork with different Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished.
+**Monero-X** is a Monero Github  trunk Hardfork with different Genesis aimed to enable **Smart Contracts** to port them back to Monero and all other forks after all dev cycles finished.
 
 Another approach is adopting Monero engine to be true `Data Driven` instead of Monero maintainers vision:
 
