@@ -1,5 +1,6 @@
 export default_type="release"
 export release_type=${2:-$default_type}
+
 export default_wallet="./wallets/default"
 export wallet_file=${1:-$default_wallet}.bin
 
