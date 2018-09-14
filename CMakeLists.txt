@@ -251,11 +251,11 @@ endif()
 # elseif(CMAKE_SYSTEM_NAME MATCHES ".*BSDI.*")
 #   set(BSDI TRUE)
 
-#find_package(rapidjson REQUIRED)
-set(RAPIDJSON_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include/rapidjson")
+find_package(rapidjson REQUIRED)
+#set(RAPIDJSON_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include/rapidjson")
 
 include_directories("${RAPIDJSON_INCLUDE_DIRS}")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RAPIDJSON_CXX_FLAGS}")
 
 include_directories(external/easylogging++ src contrib/epee/include external)
 
