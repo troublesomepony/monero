@@ -43,6 +43,9 @@ cmake_minimum_required(VERSION 3.5.0)
 
 project(monero)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 function (die msg)
   if (NOT WIN32)
     string(ASCII 27 Esc)
