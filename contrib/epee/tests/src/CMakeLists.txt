@@ -28,6 +28,6 @@ file(GLOB_RECURSE SRC        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 source_group(general  FILES ${SRC})
 
 
-add_executable(tests ${SRC} )
-target_link_libraries( tests ${Boost_LIBRARIES} )
+#add_executable(tests ${SRC} )
+#target_link_libraries( tests ${Boost_LIBRARIES} )
 
