@@ -854,7 +854,7 @@ if(USE_READLINE)
   endif()
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=user-defined-warnings")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=user-defined-warnings")
 
 if(ANDROID)
   set(ATOMIC libatomic.a)
