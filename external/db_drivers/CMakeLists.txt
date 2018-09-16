@@ -33,12 +33,6 @@ message(STATUS "Using ${ARCH_WIDTH}-bit LMDB from source tree")
 add_subdirectory(liblmdb)
 set(LMDB_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/liblmdb" CACHE STRING "LMDB Include path")
 set(LMDB_LIBRARY "lmdb" CACHE STRING "LMDB Library name")
-
-#find_package(LMDB REQUIRED)
-#include_directories(${LMDB_INCLUDE_DIR})
-#
-#set(LMDB_INCLUDE "${LMDB_INCLUDE_DIR}" CACHE STRING "LMDB Include path")
-#set(LMDB_LIBRARY "${LMDB_LIBRARIES}" CACHE STRING "LMDB Library name")
-
-#message("\n\nLMDB" ${LMDB_INCLUDE})
-#message("LIB" ${LMDB_LIBRARY})
+if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+	set_property(TARGET lmdb APPEND_STRING PROPERTY COMPILE_FLAGS " -D_SEM_SEMUN_UNDEFINED")
+endif()

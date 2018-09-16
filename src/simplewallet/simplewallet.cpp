@@ -447,7 +447,7 @@ namespace
       LOG_ERROR("RPC error: " << e.to_string());
       fail_msg_writer() << tr("RPC error: ") << e.what();
     }
-    catch (const tools::error::get_random_outs_error &e)
+    catch (const tools::error::get_outs_error &e)
     {
       fail_msg_writer() << tr("failed to get random outputs to mix: ") << e.what();
     }
@@ -1629,23 +1629,23 @@ bool simple_wallet::set_ring(const std::vector<std::string> &args)
 
 bool simple_wallet::blackball(const std::vector<std::string> &args)
 {
-  crypto::public_key output;
+  uint64_t amount = std::numeric_limits<uint64_t>::max(), offset, num_offsets;
   if (args.size() == 0)
   {
-    fail_msg_writer() << tr("usage: blackball <output_public_key> | <filename> [add]");
+    fail_msg_writer() << tr("usage: blackball <amount>/<offset> | <filename> [add]");
     return true;
   }
 
   try
   {
-    if (epee::string_tools::hex_to_pod(args[0], output))
+    if (sscanf(args[0].c_str(), "%" PRIu64 "/%" PRIu64, &amount, &offset) == 2)
     {
-      m_wallet->blackball_output(output);
+      m_wallet->blackball_output(std::make_pair(amount, offset));
     }
     else if (epee::file_io_utils::is_file_exist(args[0]))
     {
-      std::vector<crypto::public_key> outputs;
-      char str[65];
+      std::vector<std::pair<uint64_t, uint64_t>> outputs;
+      char str[256];
 
       std::unique_ptr<FILE, tools::close_file> f(fopen(args[0].c_str(), "r"));
       if (f)
@@ -1659,10 +1659,27 @@ bool simple_wallet::blackball(const std::vector<std::string> &args)
             str[len - 1] = 0;
           if (!str[0])
             continue;
-          outputs.push_back(crypto::public_key());
-          if (!epee::string_tools::hex_to_pod(str, outputs.back()))
+          if (sscanf(str, "@%" PRIu64, &amount) == 1)
           {
-            fail_msg_writer() << tr("Invalid public key: ") << str;
+            continue;
+          }
+          if (amount == std::numeric_limits<uint64_t>::max())
+          {
+            fail_msg_writer() << tr("First line is not an amount");
+            return true;
+          }
+          if (sscanf(str, "%" PRIu64 "*%" PRIu64, &offset, &num_offsets) == 2 && num_offsets <= std::numeric_limits<uint64_t>::max() - offset)
+          {
+            while (num_offsets--)
+              outputs.push_back(std::make_pair(amount, offset++));
+          }
+          else if (sscanf(str, "%" PRIu64, &offset) == 1)
+          {
+            outputs.push_back(std::make_pair(amount, offset));
+          }
+          else
+          {
+            fail_msg_writer() << tr("Invalid output: ") << str;
             return true;
           }
         }
@@ -1687,7 +1704,7 @@ bool simple_wallet::blackball(const std::vector<std::string> &args)
     }
     else
     {
-      fail_msg_writer() << tr("Invalid public key, and file doesn't exist");
+      fail_msg_writer() << tr("Invalid output key, and file doesn't exist");
       return true;
     }
   }
@@ -1701,16 +1718,16 @@ bool simple_wallet::blackball(const std::vector<std::string> &args)
 
 bool simple_wallet::unblackball(const std::vector<std::string> &args)
 {
-  crypto::public_key output;
+  std::pair<uint64_t, uint64_t> output;
   if (args.size() != 1)
   {
-    fail_msg_writer() << tr("usage: unblackball <output_public_key>");
+    fail_msg_writer() << tr("usage: unblackball <amount>/<offset>");
     return true;
   }
 
-  if (!epee::string_tools::hex_to_pod(args[0], output))
+  if (sscanf(args[0].c_str(), "%" PRIu64 "/%" PRIu64, &output.first, &output.second) != 2)
   {
-    fail_msg_writer() << tr("Invalid public key");
+    fail_msg_writer() << tr("Invalid output");
     return true;
   }
 
@@ -1728,25 +1745,25 @@ bool simple_wallet::unblackball(const std::vector<std::string> &args)
 
 bool simple_wallet::blackballed(const std::vector<std::string> &args)
 {
-  crypto::public_key output;
+  std::pair<uint64_t, uint64_t> output;
   if (args.size() != 1)
   {
-    fail_msg_writer() << tr("usage: blackballed <output_public_key>");
+    fail_msg_writer() << tr("usage: blackballed <amount>/<offset>");
     return true;
   }
 
-  if (!epee::string_tools::hex_to_pod(args[0], output))
+  if (sscanf(args[0].c_str(), "%" PRIu64 "/%" PRIu64, &output.first, &output.second) != 2)
   {
-    fail_msg_writer() << tr("Invalid public key");
+    fail_msg_writer() << tr("Invalid output");
     return true;
   }
 
   try
   {
     if (m_wallet->is_output_blackballed(output))
-      message_writer() << tr("Blackballed: ") << output;
+      message_writer() << tr("Blackballed: ") << output.first << "/" << output.second;
     else
-      message_writer() << tr("not blackballed: ") << output;
+      message_writer() << tr("not blackballed: ") << output.first << "/" << output.second;
   }
   catch (const std::exception &e)
   {
@@ -1977,18 +1994,29 @@ bool simple_wallet::set_ask_password(const std::vector<std::string> &args/* = st
   const auto pwd_container = get_and_verify_password();
   if (pwd_container)
   {
-    parse_bool_and_use(args[1], [&](bool r) {
-      const bool cur_r = m_wallet->ask_password();
-      if (!m_wallet->watch_only())
-      {
-        if (cur_r && !r)
-          m_wallet->decrypt_keys(pwd_container->password());
-        else if (!cur_r && r)
-          m_wallet->encrypt_keys(pwd_container->password());
-      }
-      m_wallet->ask_password(r);
-      m_wallet->rewrite(m_wallet_file, pwd_container->password());
-    });
+    tools::wallet2::AskPasswordType ask = tools::wallet2::AskPasswordToDecrypt;
+    if (args[1] == "never" || args[1] == "0")
+      ask = tools::wallet2::AskPasswordNever;
+    else if (args[1] == "action" || args[1] == "1")
+      ask = tools::wallet2::AskPasswordOnAction;
+    else if (args[1] == "encrypt" || args[1] == "decrypt" || args[1] == "2")
+      ask = tools::wallet2::AskPasswordToDecrypt;
+    else
+    {
+      fail_msg_writer() << tr("invalid argument: must be either 0/never, 1/action, or 2/encrypt/decrypt");
+      return true;
+    }
+
+    const tools::wallet2::AskPasswordType cur_ask = m_wallet->ask_password();
+    if (!m_wallet->watch_only())
+    {
+      if (cur_ask == tools::wallet2::AskPasswordToDecrypt && ask != tools::wallet2::AskPasswordToDecrypt)
+        m_wallet->decrypt_keys(pwd_container->password());
+      else if (cur_ask != tools::wallet2::AskPasswordToDecrypt && ask == tools::wallet2::AskPasswordToDecrypt)
+        m_wallet->encrypt_keys(pwd_container->password());
+    }
+    m_wallet->ask_password(ask);
+    m_wallet->rewrite(m_wallet_file, pwd_container->password());
   }
   return true;
 }
@@ -2273,15 +2301,15 @@ simple_wallet::simple_wallet()
                            tr("Show the blockchain height."));
   m_cmd_binder.set_handler("transfer_original",
                            boost::bind(&simple_wallet::transfer, this, _1),
-                           tr("transfer_original [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> <amount> [<payment_id>]"),
-                           tr("Transfer <amount> to <address> using an older transaction building algorithm. If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
+                           tr("transfer_original [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <address> <amount>) [<payment_id>]"),
+                           tr("Transfer <amount> to <address> using an older transaction building algorithm. If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding URI_2 or <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
   m_cmd_binder.set_handler("transfer", boost::bind(&simple_wallet::transfer_new, this, _1),
-                           tr("transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> <amount> [<payment_id>]"),
-                           tr("Transfer <amount> to <address>. If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
+                           tr("transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <address> <amount>) [<payment_id>]"),
+                           tr("Transfer <amount> to <address>. If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding URI_2 or <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
   m_cmd_binder.set_handler("locked_transfer",
                            boost::bind(&simple_wallet::locked_transfer, this, _1),
-                           tr("locked_transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <addr> <amount> <lockblocks> [<payment_id>]"),
-                           tr("Transfer <amount> to <address> and lock it for <lockblocks> (max. 1000000). If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
+                           tr("locked_transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <addr> <amount>) <lockblocks> [<payment_id>]"),
+                           tr("Transfer <amount> to <address> and lock it for <lockblocks> (max. 1000000). If the parameter \"index=<N1>[,<N2>,...]\" is specified, the wallet uses outputs received by addresses of those indices. If omitted, the wallet randomly chooses address indices to be used. In any case, it tries its best not to combine outputs across multiple addresses. <priority> is the priority of the transaction. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability. Multiple payments can be made at once by adding URI_2 or <address_2> <amount_2> etcetera (before the payment ID, if it's included)"));
   m_cmd_binder.set_handler("locked_sweep_all",
                            boost::bind(&simple_wallet::locked_sweep_all, this, _1),
                            tr("locked_sweep_all [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> <lockblocks> [<payment_id>]"),
@@ -2379,7 +2407,7 @@ simple_wallet::simple_wallet()
                                   "priority [0|1|2|3|4]\n "
                                   "  Set the fee to default/unimportant/normal/elevated/priority.\n "
                                   "confirm-missing-payment-id <1|0>\n "
-                                  "ask-password <1|0>\n "
+                                  "ask-password <0|1|2   (or never|action|decrypt)>\n "
                                   "unit <monero|millinero|micronero|nanonero|piconero>\n "
                                   "  Set the default monero (sub-)unit.\n "
                                   "min-outputs-count [n]\n "
@@ -2561,15 +2589,15 @@ simple_wallet::simple_wallet()
                            tr("Save known rings to the shared rings database"));
   m_cmd_binder.set_handler("blackball",
                            boost::bind(&simple_wallet::blackball, this, _1),
-                           tr("blackball <output public key> | <filename> [add]"),
+                           tr("blackball <amount>/<offset> | <filename> [add]"),
                            tr("Blackball output(s) so they never get selected as fake outputs in a ring"));
   m_cmd_binder.set_handler("unblackball",
                            boost::bind(&simple_wallet::unblackball, this, _1),
-                           tr("unblackball <output public key>"),
+                           tr("unblackball <amount>/<offset>"),
                            tr("Unblackballs an output so it may get selected as a fake output in a ring"));
   m_cmd_binder.set_handler("blackballed",
                            boost::bind(&simple_wallet::blackballed, this, _1),
-                           tr("blackballed <output public key>"),
+                           tr("blackballed <amount>/<offset>"),
                            tr("Checks whether an output is blackballed"));
   m_cmd_binder.set_handler("version",
                            boost::bind(&simple_wallet::version, this, _1),
@@ -2592,6 +2620,13 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     uint32_t priority = m_wallet->get_default_priority();
     if (priority < allowed_priority_strings.size())
       priority_string = allowed_priority_strings[priority];
+    std::string ask_password_string = "invalid";
+    switch (m_wallet->ask_password())
+    {
+      case tools::wallet2::AskPasswordNever: ask_password_string = "never"; break;
+      case tools::wallet2::AskPasswordOnAction: ask_password_string = "action"; break;
+      case tools::wallet2::AskPasswordToDecrypt: ask_password_string = "decrypt"; break;
+    }
     success_msg_writer() << "seed = " << seed_language;
     success_msg_writer() << "always-confirm-transfers = " << m_wallet->always_confirm_transfers();
     success_msg_writer() << "print-ring-members = " << m_wallet->print_ring_members();
@@ -2601,7 +2636,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     success_msg_writer() << "refresh-type = " << get_refresh_type_name(m_wallet->get_refresh_type());
     success_msg_writer() << "priority = " << priority<< " (" << priority_string << ")";
     success_msg_writer() << "confirm-missing-payment-id = " << m_wallet->confirm_missing_payment_id();
-    success_msg_writer() << "ask-password = " << m_wallet->ask_password();
+    success_msg_writer() << "ask-password = " << m_wallet->ask_password() << " (" << ask_password_string << ")";
     success_msg_writer() << "unit = " << cryptonote::get_unit(cryptonote::get_default_decimal_point());
     success_msg_writer() << "min-outputs-count = " << m_wallet->get_min_output_count();
     success_msg_writer() << "min-outputs-value = " << cryptonote::print_money(m_wallet->get_min_output_value());
@@ -2657,7 +2692,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     CHECK_SIMPLE_VARIABLE("refresh-type", set_refresh_type, tr("full (slowest, no assumptions); optimize-coinbase (fast, assumes the whole coinbase is paid to a single address); no-coinbase (fastest, assumes we receive no coinbase transaction), default (same as optimize-coinbase)"));
     CHECK_SIMPLE_VARIABLE("priority", set_default_priority, tr("0, 1, 2, 3, or 4, or one of ") << join_priority_strings(", "));
     CHECK_SIMPLE_VARIABLE("confirm-missing-payment-id", set_confirm_missing_payment_id, tr("0 or 1"));
-    CHECK_SIMPLE_VARIABLE("ask-password", set_ask_password, tr("0 or 1"));
+    CHECK_SIMPLE_VARIABLE("ask-password", set_ask_password, tr("0|1|2 (or never|action|decrypt)"));
     CHECK_SIMPLE_VARIABLE("unit", set_unit, tr("monero, millinero, micronero, nanonero, piconero"));
     CHECK_SIMPLE_VARIABLE("min-outputs-count", set_min_output_count, tr("unsigned integer"));
     CHECK_SIMPLE_VARIABLE("min-outputs-value", set_min_output_value, tr("amount"));
@@ -3692,7 +3727,8 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 
   try
   {
-    m_wallet->restore(m_wallet_file, std::move(rc.second).password(), device_name);
+    bool create_address_file = command_line::get_arg(vm, arg_create_address_file);
+    m_wallet->restore(m_wallet_file, std::move(rc.second).password(), device_name, create_address_file);
     message_writer(console_color_white, true) << tr("Generated new wallet on hw device: ")
       << m_wallet->get_account().get_public_address_str(m_wallet->nettype());
   }
@@ -4717,7 +4753,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     return true;
   }
 
-  const size_t min_args = (transfer_type == TransferLocked) ? 3 : 2;
+  const size_t min_args = (transfer_type == TransferLocked) ? 2 : 1;
   if(local_args.size() < min_args)
   {
      fail_msg_writer() << tr("wrong number of arguments");
@@ -4726,39 +4762,38 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
   std::vector<uint8_t> extra;
   bool payment_id_seen = false;
-  bool expect_even = (transfer_type == TransferLocked);
-  if ((expect_even ? 0 : 1) == local_args.size() % 2)
+  if (!local_args.empty())
   {
     std::string payment_id_str = local_args.back();
-    local_args.pop_back();
-
     crypto::hash payment_id;
-    bool r = tools::wallet2::parse_long_payment_id(payment_id_str, payment_id);
-    if(r)
+    bool r = true;
+    if (tools::wallet2::parse_long_payment_id(payment_id_str, payment_id))
     {
       std::string extra_nonce;
       set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
       r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
+      local_args.pop_back();
+      payment_id_seen = true;
+      message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
     }
     else
     {
       crypto::hash8 payment_id8;
-      r = tools::wallet2::parse_short_payment_id(payment_id_str, payment_id8);
-      if(r)
+      if (tools::wallet2::parse_short_payment_id(payment_id_str, payment_id8))
       {
         std::string extra_nonce;
         set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, payment_id8);
         r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
+        local_args.pop_back();
+        payment_id_seen = true;
       }
     }
 
     if(!r)
     {
-      fail_msg_writer() << tr("payment id has invalid format, expected 16 or 64 character hex string: ") << payment_id_str;
+      fail_msg_writer() << tr("payment id failed to encode");
       return true;
     }
-    payment_id_seen = true;
-    message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
   }
 
   uint64_t locked_blocks = 0;
@@ -4783,11 +4818,54 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
   vector<cryptonote::tx_destination_entry> dsts;
   size_t num_subaddresses = 0;
-  for (size_t i = 0; i < local_args.size(); i += 2)
+  for (size_t i = 0; i < local_args.size(); )
   {
-    cryptonote::address_parse_info info;
     cryptonote::tx_destination_entry de;
-    if (!cryptonote::get_account_address_from_str_or_url(info, m_wallet->nettype(), local_args[i], oa_prompter))
+    cryptonote::address_parse_info info;
+    bool r = true;
+
+    // check for a URI
+    std::string address_uri, payment_id_uri, tx_description, recipient_name, error;
+    std::vector<std::string> unknown_parameters;
+    uint64_t amount = 0;
+    bool has_uri = m_wallet->parse_uri(local_args[i], address_uri, payment_id_uri, amount, tx_description, recipient_name, unknown_parameters, error);
+    if (has_uri)
+    {
+      r = cryptonote::get_account_address_from_str_or_url(info, m_wallet->nettype(), address_uri, oa_prompter);
+      if (payment_id_uri.size() == 16)
+      {
+        if (!tools::wallet2::parse_short_payment_id(payment_id_uri, info.payment_id))
+        {
+          fail_msg_writer() << tr("failed to parse short payment ID from URI");
+          return true;
+        }
+        info.has_payment_id = true;
+      }
+      de.amount = amount;
+      ++i;
+    }
+    else if (i + 1 < local_args.size())
+    {
+      r = cryptonote::get_account_address_from_str_or_url(info, m_wallet->nettype(), local_args[i], oa_prompter);
+      bool ok = cryptonote::parse_amount(de.amount, local_args[i + 1]);
+      if(!ok || 0 == de.amount)
+      {
+        fail_msg_writer() << tr("amount is wrong: ") << local_args[i] << ' ' << local_args[i + 1] <<
+          ", " << tr("expected number from 0 to ") << print_money(std::numeric_limits<uint64_t>::max());
+        return true;
+      }
+      i += 2;
+    }
+    else
+    {
+      if (boost::starts_with(local_args[i], "monero:"))
+        fail_msg_writer() << tr("Invalid last argument: ") << local_args.back() << ": " << error;
+      else
+        fail_msg_writer() << tr("Invalid last argument: ") << local_args.back();
+      return true;
+    }
+
+    if (!r)
     {
       fail_msg_writer() << tr("failed to parse address");
       return true;
@@ -4796,16 +4874,30 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     de.is_subaddress = info.is_subaddress;
     num_subaddresses += info.is_subaddress;
 
-    if (info.has_payment_id)
+    if (info.has_payment_id || !payment_id_uri.empty())
     {
       if (payment_id_seen)
       {
-        fail_msg_writer() << tr("a single transaction cannot use more than one payment id: ") << local_args[i];
+        fail_msg_writer() << tr("a single transaction cannot use more than one payment id");
         return true;
       }
 
+      crypto::hash payment_id;
       std::string extra_nonce;
-      set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, info.payment_id);
+      if (info.has_payment_id)
+      {
+        set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, info.payment_id);
+      }
+      else if (tools::wallet2::parse_payment_id(payment_id_uri, payment_id))
+      {
+        set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+        message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
+      }
+      else
+      {
+        fail_msg_writer() << tr("failed to parse payment id, though it was detected");
+        return true;
+      }
       bool r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
       if(!r)
       {
@@ -4813,14 +4905,6 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
         return true;
       }
       payment_id_seen = true;
-    }
-
-    bool ok = cryptonote::parse_amount(de.amount, local_args[i + 1]);
-    if(!ok || 0 == de.amount)
-    {
-      fail_msg_writer() << tr("amount is wrong: ") << local_args[i] << ' ' << local_args[i + 1] <<
-        ", " << tr("expected number from 0 to ") << print_money(std::numeric_limits<uint64_t>::max());
-      return true;
     }
 
     dsts.push_back(de);
@@ -4858,15 +4942,12 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
         unlock_block = bc_height + locked_blocks;
         ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices);
       break;
+      default:
+        LOG_ERROR("Unknown transfer method, using default");
+        /* FALLTHRU */
       case TransferNew:
         ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices);
       break;
-      default:
-        LOG_ERROR("Unknown transfer method, using original");
-        /* FALLTHRU */
-      case TransferOriginal:
-        ptx_vector = m_wallet->create_transactions(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra);
-        break;
     }
 
     if (ptx_vector.empty())
