@@ -3271,8 +3271,6 @@ bool wallet2::load_keys(const std::string& keys_file_name, const epee::wipeable_
   r = epee::serialization::load_t_from_binary(m_account, account_data);
   if (r && m_key_on_device) {
     LOG_PRINT_L0("Account on device. Initing device");
-    hw::device &hwdev = hw::get_device("Ledger");
-    LOG_PRINT_L0("Account on device. Initing device...");
     hw::device &hwdev = hw::get_device(m_device_name);
     hwdev.set_name(m_device_name);
     hwdev.init();
