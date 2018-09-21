@@ -2525,6 +2525,10 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::import_key_images, this, _1),
                            tr("import_key_images <file>"),
                            tr("Import a signed key images list and verify their spent status."));
+  m_cmd_binder.set_handler("hw_reconnect",
+                           boost::bind(&simple_wallet::hw_reconnect, this, _1),
+                           tr("hw_reconnect"),
+                           tr("Attempts to reconnect HW wallet."));
   m_cmd_binder.set_handler("export_outputs",
                            boost::bind(&simple_wallet::export_outputs, this, _1),
                            tr("export_outputs <file>"),
@@ -2652,6 +2656,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     success_msg_writer() << "subaddress-lookahead = " << lookahead.first << ":" << lookahead.second;
     success_msg_writer() << "segregation-height = " << m_wallet->segregation_height();
     success_msg_writer() << "ignore-fractional-outputs = " << m_wallet->ignore_fractional_outputs();
+    success_msg_writer() << "device_name = " << m_wallet->device_name();
     return true;
   }
   else
@@ -3011,20 +3016,19 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       }
 
       // parse view secret key
-      std::string viewkey_string = input_line("View key: ");
+      epee::wipeable_string viewkey_string = input_secure_line("Secret view key: ");
       if (std::cin.eof())
         return false;
       if (viewkey_string.empty()) {
         fail_msg_writer() << tr("No data supplied, cancelled");
         return false;
       }
-      cryptonote::blobdata viewkey_data;
-      if(!epee::string_tools::parse_hexstr_to_binbuff(viewkey_string, viewkey_data) || viewkey_data.size() != sizeof(crypto::secret_key))
+      crypto::secret_key viewkey;
+      if (viewkey_string.hex_to_pod(unwrap(unwrap(viewkey))))
       {
         fail_msg_writer() << tr("failed to parse view key secret key");
         return false;
       }
-      crypto::secret_key viewkey = *reinterpret_cast<const crypto::secret_key*>(viewkey_data.data());
 
       m_wallet_file=m_generate_from_view_key;
 
@@ -3047,14 +3051,14 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
     {
       m_wallet_file = m_generate_from_spend_key;
       // parse spend secret key
-      std::string spendkey_string = input_line("Secret spend key: ");
+      epee::wipeable_string spendkey_string = input_secure_line("Secret spend key: ");
       if (std::cin.eof())
         return false;
       if (spendkey_string.empty()) {
         fail_msg_writer() << tr("No data supplied, cancelled");
         return false;
       }
-      if (!epee::string_tools::hex_to_pod(spendkey_string, m_recovery_key))
+      if (!spendkey_string.hex_to_pod(unwrap(unwrap(m_recovery_key))))
       {
         fail_msg_writer() << tr("failed to parse spend key secret key");
         return false;
@@ -3087,36 +3091,34 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       }
 
       // parse spend secret key
-      std::string spendkey_string = input_line("Secret spend key: ");
+      epee::wipeable_string spendkey_string = input_secure_line("Secret spend key: ");
       if (std::cin.eof())
         return false;
       if (spendkey_string.empty()) {
         fail_msg_writer() << tr("No data supplied, cancelled");
         return false;
       }
-      cryptonote::blobdata spendkey_data;
-      if(!epee::string_tools::parse_hexstr_to_binbuff(spendkey_string, spendkey_data) || spendkey_data.size() != sizeof(crypto::secret_key))
+      crypto::secret_key spendkey;
+      if (!spendkey_string.hex_to_pod(unwrap(unwrap(spendkey))))
       {
         fail_msg_writer() << tr("failed to parse spend key secret key");
         return false;
       }
-      crypto::secret_key spendkey = *reinterpret_cast<const crypto::secret_key*>(spendkey_data.data());
 
       // parse view secret key
-      std::string viewkey_string = input_line("Secret view key: ");
+      epee::wipeable_string viewkey_string = input_secure_line("Secret view key: ");
       if (std::cin.eof())
         return false;
       if (viewkey_string.empty()) {
         fail_msg_writer() << tr("No data supplied, cancelled");
         return false;
       }
-      cryptonote::blobdata viewkey_data;
-      if(!epee::string_tools::parse_hexstr_to_binbuff(viewkey_string, viewkey_data) || viewkey_data.size() != sizeof(crypto::secret_key))
+      crypto::secret_key viewkey;
+      if(!viewkey_string.hex_to_pod(unwrap(unwrap(viewkey))))
       {
         fail_msg_writer() << tr("failed to parse view key secret key");
         return false;
       }
-      crypto::secret_key viewkey = *reinterpret_cast<const crypto::secret_key*>(viewkey_data.data());
 
       m_wallet_file=m_generate_from_keys;
 
@@ -3192,7 +3194,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       }
       
       // parse secret view key
-      std::string viewkey_string = input_line("Secret view key: ");
+      epee::wipeable_string viewkey_string = input_secure_line("Secret view key: ");
       if (std::cin.eof())
         return false;
       if (viewkey_string.empty())
@@ -3200,13 +3202,12 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
         fail_msg_writer() << tr("No data supplied, cancelled");
         return false;
       }
-      cryptonote::blobdata viewkey_data;
-      if(!epee::string_tools::parse_hexstr_to_binbuff(viewkey_string, viewkey_data) || viewkey_data.size() != sizeof(crypto::secret_key))
+      crypto::secret_key viewkey;
+      if(!viewkey_string.hex_to_pod(unwrap(unwrap(viewkey))))
       {
         fail_msg_writer() << tr("failed to parse secret view key");
         return false;
       }
-      crypto::secret_key viewkey = *reinterpret_cast<const crypto::secret_key*>(viewkey_data.data());
       
       // check that the view key matches the given address
       crypto::public_key pkey;
@@ -3227,12 +3228,12 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       if(multisig_m == multisig_n)
       {
         std::vector<crypto::secret_key> multisig_secret_spendkeys(multisig_n);
-        std::string spendkey_string;
+        epee::wipeable_string spendkey_string;
         cryptonote::blobdata spendkey_data;
         // get N secret spend keys from user
         for(unsigned int i=0; i<multisig_n; ++i)
         {
-          spendkey_string = input_line(tr((boost::format(tr("Secret spend key (%u of %u):")) % (i+1) % multisig_m).str().c_str()));
+          spendkey_string = input_secure_line(tr((boost::format(tr("Secret spend key (%u of %u):")) % (i+1) % multisig_m).str().c_str()));
           if (std::cin.eof())
             return false;
           if (spendkey_string.empty())
@@ -3240,12 +3241,11 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
             fail_msg_writer() << tr("No data supplied, cancelled");
             return false;
           }
-          if(!epee::string_tools::parse_hexstr_to_binbuff(spendkey_string, spendkey_data) || spendkey_data.size() != sizeof(crypto::secret_key))
+          if(!spendkey_string.hex_to_pod(unwrap(unwrap(multisig_secret_spendkeys[i]))))
           {
             fail_msg_writer() << tr("failed to parse spend key secret key");
             return false;
           }
-          multisig_secret_spendkeys[i] = *reinterpret_cast<const crypto::secret_key*>(spendkey_data.data());
         }
         
         // sum the spend keys together to get the master spend key
@@ -3297,7 +3297,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
     {
       m_wallet_file = m_generate_from_device;
       // create wallet
-      auto r = new_wallet(vm, "Ledger");
+      auto r = new_wallet(vm);
       CHECK_AND_ASSERT_MES(r, false, tr("account creation failed"));
       password = *r;
       // if no block_height is specified, assume its a new account and start it "now"
@@ -3705,8 +3705,8 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 }
 
 //----------------------------------------------------------------------------------------------------
-boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
-                               const std::string &device_name) {
+boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm)
+{
   auto rc = tools::wallet2::make_new(vm, false, password_prompter);
   m_wallet = std::move(rc.first);
   if (!m_wallet)
@@ -3725,10 +3725,11 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
   if (m_restore_height)
     m_wallet->set_refresh_from_block_height(m_restore_height);
 
+  auto device_desc = tools::wallet2::device_name_option(vm);
   try
   {
     bool create_address_file = command_line::get_arg(vm, arg_create_address_file);
-    m_wallet->restore(m_wallet_file, std::move(rc.second).password(), device_name, create_address_file);
+    m_wallet->restore(m_wallet_file, std::move(rc.second).password(), device_desc.empty() ? "Ledger" : device_desc, create_address_file);
     message_writer(console_color_white, true) << tr("Generated new wallet on hw device: ")
       << m_wallet->get_account().get_public_address_str(m_wallet->nettype());
   }
@@ -4085,7 +4086,7 @@ bool simple_wallet::set_daemon(const std::vector<std::string>& args)
       daemon_url = args[0];
     }
     LOCK_IDLE_SCOPE();
-    m_wallet->init(false, daemon_url);
+    m_wallet->init(daemon_url);
 
     if (args.size() == 2)
     {
@@ -7741,6 +7742,31 @@ bool simple_wallet::import_key_images(const std::vector<std::string> &args)
   catch (const std::exception &e)
   {
     fail_msg_writer() << "Failed to import key images: " << e.what();
+    return true;
+  }
+
+  return true;
+}
+//----------------------------------------------------------------------------------------------------
+bool simple_wallet::hw_reconnect(const std::vector<std::string> &args)
+{
+  if (!m_wallet->key_on_device())
+  {
+    fail_msg_writer() << tr("command only supported by HW wallet");
+    return true;
+  }
+
+  LOCK_IDLE_SCOPE();
+  try
+  {
+    bool r = m_wallet->reconnect_device();
+    if (!r){
+      fail_msg_writer() << tr("Failed to reconnect device");
+    }
+  }
+  catch (const std::exception &e)
+  {
+    fail_msg_writer() << tr("Failed to reconnect device: ") << tr(e.what());
     return true;
   }
 

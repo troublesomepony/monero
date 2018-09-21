@@ -3454,7 +3454,6 @@ leave:
   uint64_t already_generated_coins = m_db->height() ? m_db->get_block_already_generated_coins(m_db->height() - 1) : 0;
   if(!validate_miner_transaction(bl, cumulative_block_weight, fee_summary, base_reward, already_generated_coins, bvc.m_partial_block_reward, m_hardfork->get_current_version()))
   {
-
     MERROR_VER("Block with id: " << id << " has incorrect miner transaction");
     bvc.m_verifivation_failed = true;
     return_tx_to_pool(txs);
@@ -3492,7 +3491,6 @@ leave:
     catch (const KEY_IMAGE_EXISTS& e)
     {
       LOG_ERROR("Error adding block with hash: " << id << " to blockchain, what = " << e.what());
-      LOG_ERROR(e.what());
       bvc.m_verifivation_failed = true;
       return_tx_to_pool(txs);
       return false;
@@ -4409,7 +4407,6 @@ void Blockchain::load_compiled_in_block_hashes()
       if (hash != expected_hash)
       {
         MERROR("Block hash data does not match expected hash");
-//        MERROR(hash);
         return;
       }
     }

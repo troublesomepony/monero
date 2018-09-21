@@ -720,6 +720,11 @@ struct Wallet
      * @return number of imported images
      */
     virtual size_t importMultisigImages(const std::vector<std::string>& images) = 0;
+    /**
+     * @brief hasMultisigPartialKeyImages - checks if wallet needs to import multisig key images from other participants
+     * @return true if there are partial key images
+     */
+    virtual bool hasMultisigPartialKeyImages() const = 0;
 
     /**
      * @brief restoreMultisigTransaction creates PendingTransaction from signData
@@ -875,7 +880,7 @@ struct Wallet
     virtual bool blackballOutputs(const std::vector<std::string> &pubkeys, bool add) = 0;
 
     //! unblackballs an output
-    virtual bool unblackballOutput(const std::string &pubkey) = 0;
+    virtual bool unblackballOutput(const std::string &amount, const std::string &offset) = 0;
 
     //! gets the ring used for a key image, if any
     virtual bool getRing(const std::string &key_image, std::vector<uint64_t> &ring) const = 0;
